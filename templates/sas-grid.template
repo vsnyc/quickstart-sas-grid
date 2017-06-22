@@ -38,8 +38,7 @@
                     },
                     "Parameters": [
                         "SASGridInfraSize",
-                        "SASGridKeyPairName",
-                        "SASDataEBSVolumeSize"
+                        "SASGridKeyPairName"
                     ]
                 },
                 {
@@ -63,9 +62,6 @@
                 }
             ],
             "ParameterLabels": {
-                "AvailabilityZones": {
-                    "default": "Availability Zones"
-                },
                 "AdminPassword": {
                     "default": "Admin Password"
                 },
@@ -87,9 +83,6 @@
                 "LustreKeyPairName": {
                     "default": "Lustre KeyPair Name"
                 },
-                "SASDataEBSVolumeSize": {
-                    "default": "SASData EBS Volume Size"
-                },
                 "LustreOSSEBSVolumeSize": {
                     "default": "Lustre OSS EBS Volume Size"
                 },
@@ -98,18 +91,6 @@
                 },
                 "NumberOfRDGWHosts": {
                     "default": "Number of RDGW Hosts"
-                },
-                "PrivateSubnet1CIDR": {
-                    "default": "Private Subnet 1 CIDR"
-                },
-                "PrivateSubnet2CIDR": {
-                    "default": "Private Subnet 2 CIDR"
-                },
-                "PublicSubnet1CIDR": {
-                    "default": "Public Subnet 1 CIDR"
-                },
-                "PublicSubnet2CIDR": {
-                    "default": "Public Subnet 2 CIDR"
                 },
                 "QSS3BucketName": {
                     "default": "Quick Start S3 Bucket Name"
@@ -122,14 +103,11 @@
                 },
                 "RDGWCIDR": {
                     "default": "Allowed Remote Desktop Gateway External Access CIDR"
-                },
-                "VPCCIDR": {
-                    "default": "VPC CIDR"
                 }
             }
         }
     },
-	"Parameters": {
+    "Parameters": {
         "AdminPassword": {
             "Description": "Password for the administrative account. Must be at least 8 characters containing letters, numbers and symbols",
             "Type": "String",
@@ -268,7 +246,7 @@
         "SASGridStack": {
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
-				"TemplateURL": {
+                "TemplateURL": {
                     "Fn::Sub": [
                         "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-sas-grid/templates/sas-nodes.template",
                         {
