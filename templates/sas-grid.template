@@ -1,0 +1,416 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This template creates a multi-tier deployment of a Linux based Application infrastructure into an existing VPC and subnets. It will deploy a Remote Desktop Gateway and manage NAT gateways into the public subnet for each Availability Zone. It will also create a SASGrid and Lustre infrastructure. **WARNING** This template creates Amazon EC2 Windows instance and related resources. You will be billed for the AWS resources used if you create a stack from this template.",
+    "Metadata": {
+        "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+                        "AvailabilityZones",
+                        "VPCID",
+                        "PrivateSubnet1ID",
+                        "PrivateSubnet2ID",
+                        "PublicSubnet1ID",
+                        "PublicSubnet2ID"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Microsoft Remote Desktop Gateway Configuration"
+                    },
+                    "Parameters": [
+                        "RDGWKeyPairName",
+                        "RDGWInstanceType",
+                        "NumberOfRDGWHosts",
+                        "AdminUser",
+                        "AdminPassword",
+                        "DomainDNSName",
+                        "RDGWCIDR",
+                        "RDGWSG"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "SASGrid EC2 Configuration"
+                    },
+                    "Parameters": [
+                        "SASGridInfraSize",
+                        "SASGridKeyPairName",
+                        "SASDataEBSVolumeSize"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Lustre EC2 Configuration"
+                    },
+                    "Parameters": [
+                        "LustreKeyPairName",
+                        "NumberOfOSSNodes",
+                        "LustreOSSEBSVolumeSize"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "AWS Quick Start Configuration"
+                    },
+                    "Parameters": [
+                        "QSS3BucketName",
+                        "QSS3KeyPrefix"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+                "AvailabilityZones": {
+                    "default": "Availability Zones"
+                },
+                "AdminPassword": {
+                    "default": "Admin Password"
+                },
+                "AdminUser": {
+                    "default": "Admin User Name"
+                },
+                "DomainDNSName": {
+                    "default": "Domain DNS Name"
+                },
+                "RDGWKeyPairName": {
+                    "default": "RDGW KeyPair Name"
+                },
+                "SASGridKeyPairName": {
+                    "default": "SASGrid KeyPair Name"
+                },
+                "SASGridInfraSize": {
+                    "default": "SASGridInfraSize"
+                },
+                "LustreKeyPairName": {
+                    "default": "Lustre KeyPair Name"
+                },
+                "SASDataEBSVolumeSize": {
+                    "default": "SASData EBS Volume Size"
+                },
+                "LustreOSSEBSVolumeSize": {
+                    "default": "Lustre OSS EBS Volume Size"
+                },
+                "NumberOfOSSNodes": {
+                    "default": "Number of OSS Nodes"
+                },
+                "NumberOfRDGWHosts": {
+                    "default": "Number of RDGW Hosts"
+                },
+                "PrivateSubnet1CIDR": {
+                    "default": "Private Subnet 1 CIDR"
+                },
+                "PrivateSubnet2CIDR": {
+                    "default": "Private Subnet 2 CIDR"
+                },
+                "PublicSubnet1CIDR": {
+                    "default": "Public Subnet 1 CIDR"
+                },
+                "PublicSubnet2CIDR": {
+                    "default": "Public Subnet 2 CIDR"
+                },
+                "QSS3BucketName": {
+                    "default": "Quick Start S3 Bucket Name"
+                },
+                "QSS3KeyPrefix": {
+                    "default": "Quick Start S3 Key Prefix"
+                },
+                "RDGWInstanceType": {
+                    "default": "Remote Desktop Gateway Instance Type"
+                },
+                "RDGWCIDR": {
+                    "default": "Allowed Remote Desktop Gateway External Access CIDR"
+                },
+                "VPCCIDR": {
+                    "default": "VPC CIDR"
+                }
+            }
+        },
+        "AWS::CloudFormation::Designer": {
+            "b9104637-a060-4966-84fa-3a352d46446e": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 500,
+                    "y": 40
+                },
+                "z": 0,
+                "embeds": [],
+                "isrelatedto": [
+                    "e6c57fe2-fd5d-4462-a170-c7b4de63f41d",
+                    "e2ad3d60-e125-410f-aafb-537dfdc60302"
+                ]
+            },
+            "323c2221-83f8-4766-98e9-28afad8f3d34": {
+                "source": {
+                    "id": "b9104637-a060-4966-84fa-3a352d46446e"
+                },
+                "target": {
+                    "id": "e2ad3d60-e125-410f-aafb-537dfdc60302"
+                },
+                "z": 2
+            },
+            "7959c0ce-c175-415d-8124-10ab54b18e54": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 620,
+                    "y": 40
+                },
+                "z": 0,
+                "embeds": [],
+                "dependson": [
+                    "b9104637-a060-4966-84fa-3a352d46446e"
+                ],
+                "isrelatedto": [
+                    "b9104637-a060-4966-84fa-3a352d46446e",
+                    "e2ad3d60-e125-410f-aafb-537dfdc60302"
+                ]
+            },
+            "3dcfc513-0a18-4a14-aeb7-215227cf62aa": {
+                "source": {
+                    "id": "7959c0ce-c175-415d-8124-10ab54b18e54"
+                },
+                "target": {
+                    "id": "b9104637-a060-4966-84fa-3a352d46446e"
+                },
+                "z": 2
+            }
+        }
+    },
+    "Parameters": {
+        "AdminPassword": {
+            "Description": "Password for the administrative account. Must be at least 8 characters containing letters, numbers and symbols",
+            "Type": "String",
+            "MinLength": "8",
+            "MaxLength": "32",
+            "AllowedPattern": "(?=^.{6,255}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
+            "NoEcho": "true"
+        },
+        "AdminUser": {
+            "Description": "User name for the new local administrator account",
+            "Type": "String",
+            "Default": "StackAdmin",
+            "MinLength": "5",
+            "MaxLength": "25",
+            "AllowedPattern": "[a-zA-Z0-9]*"
+        },
+        "DomainDNSName": {
+            "AllowedPattern": "[a-zA-Z0-9]+\\..+",
+            "Default": "example.com",
+            "Description": "Fully qualified domain name (FQDN) of the forest root domain e.g. example.com",
+            "MaxLength": "25",
+            "MinLength": "3",
+            "Type": "String"
+        },
+        "RDGWKeyPairName": {
+            "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "RDGWSG": {
+            "Description": "ID of the Security Group (e.g., sg-0343606e)",
+            "Type": "AWS::EC2::SecurityGroup::Id"
+        },
+        "SASGridKeyPairName": {
+            "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "SASGridInfraSize": {
+            "Type": "String",
+            "Default": "Small",
+            "AllowedValues": [
+                "Small",
+                "Medium",
+                "Large"
+            ]
+        },
+        "LustreKeyPairName": {
+            "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "LustreOSSEBSVolumeSize": {
+            "Description": "Provide size(in GB) of SASData Volume for SASGrid Instances",
+            "Type": "String",
+            "MinLength": "1",
+            "MaxLength": "4",
+            "Default": "10"
+        },
+        "NumberOfOSSNodes": {
+            "Description": "Provide the number of OSS Node instances are required",
+            "Type": "Number",
+            "MinValue": "3",
+            "MaxValue": "15",
+            "Default": "3"
+        },
+        "PrivateSubnet1ID": {
+            "Description": "Select the Subnet ID of a private subnet 1 located in Availability Zone 1.",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "PrivateSubnet2ID": {
+            "Description": "Select the Subnet ID of a private subnet 2 located in Availability Zone 1.",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "PublicSubnet1ID": {
+            "Description": "Select the Subnet ID of public DMZ subnet 1 located in Availability Zone 1",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "PublicSubnet2ID": {
+            "Description": "Select the Subnet ID of public DMZ subnet 2 located in Availability Zone 2",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "QSS3BucketName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Default": "quickstart-reference",
+            "Description": "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "QSS3KeyPrefix": {
+            "AllowedPattern": "^[0-9a-zA-Z-/]*$",
+            "ConstraintDescription": "Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+            "Default": "microsoft/rdgateway/latest/",
+            "Description": "S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+            "Type": "String"
+        },
+        "RDGWInstanceType": {
+            "AllowedValues": [
+                "t2.large",
+                "m4.large",
+                "m4.xlarge",
+                "m4.2xlarge",
+                "m4.4xlarge"
+            ],
+            "Default": "t2.large",
+            "Description": "Amazon EC2 instance type for the bastion instances",
+            "Type": "String"
+        },
+        "RDGWCIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/x",
+            "Description": "Allowed CIDR Block for external access to the Remote Desktop Gateways",
+            "Type": "String"
+        },
+        "VPCID": {
+            "Description": "Select the ID of an existing VPC",
+            "Type": "AWS::EC2::VPC::Id"
+        },
+        "NumberOfRDGWHosts": {
+            "AllowedValues": [
+                "1"
+            ],
+            "Default": "1",
+            "Description": "Enter the number of Remote Desktop Gateway hosts to create",
+            "Type": "String"
+        }
+    },
+    "Conditions": {
+        "GovCloudCondition": {
+            "Fn::Equals": [
+                {
+                    "Ref": "AWS::Region"
+                },
+                "us-gov-west-1"
+            ]
+        }
+    },
+    "Resources": {
+        "SASGridStack": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "TemplateURL": "https://s3.amazonaws.com/smergu-automation/QuickStart/SASGrid.template",
+                "Parameters": {
+                    "SASGridKeyPairName": {
+                        "Ref": "SASGridKeyPairName"
+                    },
+                    "NumberOfOSSNodes": {
+                        "Ref": "NumberOfOSSNodes"
+                    },
+                    "PrivateSubnet1ID": {
+                        "Ref": "PrivateSubnet1ID"
+                    },
+                    "SASGridInfraSize": {
+                        "Ref": "SASGridInfraSize"
+                    },
+                    "VPCID": {
+                        "Ref": "VPCID"
+                    },
+                    "DomainDNSName": {
+                        "Ref": "DomainDNSName"
+                    },
+                    "RDGWSG": {
+                        "Ref": "RDGWSG"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "b9104637-a060-4966-84fa-3a352d46446e"
+                }
+            }
+        },
+        "LustreStack": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "TemplateURL": "https://s3.amazonaws.com/smergu-automation/QuickStart/Lustre.template",
+                "Parameters": {
+                    "SASGridInfraSize": {
+                        "Ref": "SASGridInfraSize"
+                    },
+                    "LustreKeyPairName": {
+                        "Ref": "LustreKeyPairName"
+                    },
+                    "PrivateSubnet2ID": {
+                        "Ref": "PrivateSubnet2ID"
+                    },
+                    "NumberOfOSSNodes": {
+                        "Ref": "NumberOfOSSNodes"
+                    },
+                    "DomainDNSName": {
+                        "Ref": "DomainDNSName"
+                    },
+                    "SASGridSG": {
+                        "Fn::GetAtt": [
+                            "SASGridStack",
+                            "Outputs.SASGridSGID"
+                        ]
+                    },
+                    "SASGridLustePlacementGroup": {
+                        "Fn::GetAtt": [
+                            "SASGridStack",
+                            "Outputs.SASGridLustePlacementGroup"
+                        ]
+                    },
+                    "LustreOSSEBSVolumeSize": {
+                        "Ref": "LustreOSSEBSVolumeSize"
+                    },
+                    "VPCID": {
+                        "Ref": "VPCID"
+                    },
+                    "RDGWSG": {
+                        "Ref": "RDGWSG"
+                    },
+                    "EFSFileSystemId": {
+                        "Fn::GetAtt": [
+                            "SASGridStack",
+                            "Outputs.EFSFileSystemID"
+                        ]
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "7959c0ce-c175-415d-8124-10ab54b18e54"
+                }
+            },
+            "DependsOn": [
+                "SASGridStack"
+            ]
+        }
+    }
+}
