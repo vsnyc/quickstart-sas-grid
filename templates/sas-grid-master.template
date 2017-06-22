@@ -122,97 +122,9 @@
                     "default": "VPC CIDR"
                 }
             }
-        },
-        "AWS::CloudFormation::Designer": {
-            "e6c57fe2-fd5d-4462-a170-c7b4de63f41d": {
-                "size": {
-                    "width": 60,
-                    "height": 60
-                },
-                "position": {
-                    "x": 90,
-                    "y": 30
-                },
-                "z": 1,
-                "embeds": []
-            },
-            "b9104637-a060-4966-84fa-3a352d46446e": {
-                "size": {
-                    "width": 60,
-                    "height": 60
-                },
-                "position": {
-                    "x": 310,
-                    "y": 30
-                },
-                "z": 1,
-                "embeds": [],
-                "dependson": [
-                    "e6c57fe2-fd5d-4462-a170-c7b4de63f41d",
-                    "e2ad3d60-e125-410f-aafb-537dfdc60302"
-                ],
-                "isrelatedto": [
-                    "e6c57fe2-fd5d-4462-a170-c7b4de63f41d",
-                    "e2ad3d60-e125-410f-aafb-537dfdc60302"
-                ]
-            },
-            "323c2221-83f8-4766-98e9-28afad8f3d34": {
-                "source": {
-                    "id": "b9104637-a060-4966-84fa-3a352d46446e"
-                },
-                "target": {
-                    "id": "e2ad3d60-e125-410f-aafb-537dfdc60302"
-                },
-                "z": 2
-            },
-            "7fac988c-760b-464b-8499-9af806002de5": {
-                "source": {
-                    "id": "b9104637-a060-4966-84fa-3a352d46446e"
-                },
-                "target": {
-                    "id": "e6c57fe2-fd5d-4462-a170-c7b4de63f41d"
-                },
-                "z": 2
-            },
-            "e2ad3d60-e125-410f-aafb-537dfdc60302": {
-                "size": {
-                    "width": 60,
-                    "height": 60
-                },
-                "position": {
-                    "x": 200,
-                    "y": 30
-                },
-                "z": 1,
-                "embeds": [],
-                "dependson": [
-                    "e6c57fe2-fd5d-4462-a170-c7b4de63f41d"
-                ],
-                "isrelatedto": [
-                    "e6c57fe2-fd5d-4462-a170-c7b4de63f41d"
-                ]
-            },
-            "bec1e8fc-0eca-4f80-a163-56ca1de825dc": {
-                "source": {
-                    "id": "b9104637-a060-4966-84fa-3a352d46446e"
-                },
-                "target": {
-                    "id": "e2ad3d60-e125-410f-aafb-537dfdc60302"
-                },
-                "z": 2
-            },
-            "fed53fd6-b766-44c9-b84b-fc6d667c90c5": {
-                "source": {
-                    "id": "e2ad3d60-e125-410f-aafb-537dfdc60302"
-                },
-                "target": {
-                    "id": "e6c57fe2-fd5d-4462-a170-c7b4de63f41d"
-                },
-                "z": 2
-            }
         }
     },
-    "Parameters": {
+	"Parameters": {
         "AdminPassword": {
             "Description": "Password for the administrative account. Must be at least 8 characters containing letters, numbers and symbols",
             "Type": "String",
@@ -369,7 +281,7 @@
             "Properties": {
                 "TemplateURL": {
                     "Fn::Sub": [
-                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template",
+                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-sas-grid/submodules/quickstart-aws-vpc/templates/aws-vpc.template",
                         {
                             "QSS3Region": {
                                 "Fn::If": [
@@ -413,9 +325,6 @@
                 }
             },
             "Metadata": {
-                "AWS::CloudFormation::Designer": {
-                    "id": "e6c57fe2-fd5d-4462-a170-c7b4de63f41d"
-                }
             }
         },
         "RDGWStack": {
@@ -426,7 +335,7 @@
             "Properties": {
                 "TemplateURL": {
                     "Fn::Sub": [
-                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/rdgw-standalone.template",
+                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-sas-grid/submodules/quickstart-microsoft-rdgateway/templates/rdgw-standalone.template",
                         {
                             "QSS3Region": {
                                 "Fn::If": [
@@ -484,15 +393,25 @@
                 }
             },
             "Metadata": {
-                "AWS::CloudFormation::Designer": {
-                    "id": "e2ad3d60-e125-410f-aafb-537dfdc60302"
-                }
             }
         },
         "SASGridQuickStartStack": {
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
-                "TemplateURL": "https://s3.amazonaws.com/smergu-automation/QuickStart/SASGridQuickStart.template",
+				"TemplateURL": {
+                    "Fn::Sub": [
+                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-sas-grid/templates/sas-grid.template",
+                        {
+                            "QSS3Region": {
+                                "Fn::If": [
+                                    "GovCloudCondition",
+                                    "s3-us-gov-west-1",
+                                    "s3"
+                                ]
+                            }
+                        }
+                    ]
+                },
                 "Parameters": {
                     "DomainDNSName": {
                         "Ref": "DomainDNSName"
@@ -539,14 +458,10 @@
                 }
             },
             "Metadata": {
-                "AWS::CloudFormation::Designer": {
-                    "id": "b9104637-a060-4966-84fa-3a352d46446e"
-                }
             },
             "DependsOn": [
                 "RDGWStack"
             ]
         }
-    },
-    "Mappings": {}
+    }
 }

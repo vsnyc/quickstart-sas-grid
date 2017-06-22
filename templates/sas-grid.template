@@ -127,64 +127,9 @@
                     "default": "VPC CIDR"
                 }
             }
-        },
-        "AWS::CloudFormation::Designer": {
-            "b9104637-a060-4966-84fa-3a352d46446e": {
-                "size": {
-                    "width": 60,
-                    "height": 60
-                },
-                "position": {
-                    "x": 500,
-                    "y": 40
-                },
-                "z": 0,
-                "embeds": [],
-                "isrelatedto": [
-                    "e6c57fe2-fd5d-4462-a170-c7b4de63f41d",
-                    "e2ad3d60-e125-410f-aafb-537dfdc60302"
-                ]
-            },
-            "323c2221-83f8-4766-98e9-28afad8f3d34": {
-                "source": {
-                    "id": "b9104637-a060-4966-84fa-3a352d46446e"
-                },
-                "target": {
-                    "id": "e2ad3d60-e125-410f-aafb-537dfdc60302"
-                },
-                "z": 2
-            },
-            "7959c0ce-c175-415d-8124-10ab54b18e54": {
-                "size": {
-                    "width": 60,
-                    "height": 60
-                },
-                "position": {
-                    "x": 620,
-                    "y": 40
-                },
-                "z": 0,
-                "embeds": [],
-                "dependson": [
-                    "b9104637-a060-4966-84fa-3a352d46446e"
-                ],
-                "isrelatedto": [
-                    "b9104637-a060-4966-84fa-3a352d46446e",
-                    "e2ad3d60-e125-410f-aafb-537dfdc60302"
-                ]
-            },
-            "3dcfc513-0a18-4a14-aeb7-215227cf62aa": {
-                "source": {
-                    "id": "7959c0ce-c175-415d-8124-10ab54b18e54"
-                },
-                "target": {
-                    "id": "b9104637-a060-4966-84fa-3a352d46446e"
-                },
-                "z": 2
-            }
         }
     },
-    "Parameters": {
+	"Parameters": {
         "AdminPassword": {
             "Description": "Password for the administrative account. Must be at least 8 characters containing letters, numbers and symbols",
             "Type": "String",
@@ -323,7 +268,20 @@
         "SASGridStack": {
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
-                "TemplateURL": "https://s3.amazonaws.com/smergu-automation/QuickStart/SASGrid.template",
+				"TemplateURL": {
+                    "Fn::Sub": [
+                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-sas-grid/templates/sasnodes.template",
+                        {
+                            "QSS3Region": {
+                                "Fn::If": [
+                                    "GovCloudCondition",
+                                    "s3-us-gov-west-1",
+                                    "s3"
+                                ]
+                            }
+                        }
+                    ]
+                },
                 "Parameters": {
                     "SASGridKeyPairName": {
                         "Ref": "SASGridKeyPairName"
@@ -349,15 +307,25 @@
                 }
             },
             "Metadata": {
-                "AWS::CloudFormation::Designer": {
-                    "id": "b9104637-a060-4966-84fa-3a352d46446e"
-                }
             }
         },
         "LustreStack": {
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
-                "TemplateURL": "https://s3.amazonaws.com/smergu-automation/QuickStart/Lustre.template",
+                "TemplateURL": {
+                    "Fn::Sub": [
+                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-sas-grid/templates/lustre.template",
+                        {
+                            "QSS3Region": {
+                                "Fn::If": [
+                                    "GovCloudCondition",
+                                    "s3-us-gov-west-1",
+                                    "s3"
+                                ]
+                            }
+                        }
+                    ]
+                },
                 "Parameters": {
                     "SASGridInfraSize": {
                         "Ref": "SASGridInfraSize"
@@ -404,9 +372,6 @@
                 }
             },
             "Metadata": {
-                "AWS::CloudFormation::Designer": {
-                    "id": "7959c0ce-c175-415d-8124-10ab54b18e54"
-                }
             },
             "DependsOn": [
                 "SASGridStack"

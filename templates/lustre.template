@@ -1,0 +1,1337 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This template creates a Lustre infrastructure in a single AZ. It will deploy Security Groups, 2 EC2 instances, 1 AutoScaling Group and Launch Configuration for Lustre in a private subnet. **WARNING** This template creates Amazon EC2 RHEL instances and dependent resources. You will be billed for the AWS resources used if you create a stack from this template.",
+    "Metadata": {
+        "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+                        "VPCID",
+                        "PrivateSubnet2ID",
+                        "RDGWSG"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "SASGrid EC2 Configuration"
+                    },
+                    "Parameters": [
+                        "SASGridInfraSize",
+                        "SASGridLustePlacementGroup",
+                        "SASGridSG"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Lustre EC2 Configuration"
+                    },
+                    "Parameters": [
+                        "LustreKeyPairName",
+                        "NumberOfOSSNodes",
+                        "LustreOSSEBSVolumeSize"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Other AWS Quick Start Configuration"
+                    },
+                    "Parameters": [
+                        "DomainDNSName",
+                        "EFSFileSystemId"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+                "DomainDNSName": {
+                    "default": "Domain DNS Name"
+                },
+                "EFSFileSystemId": {
+                    "default": "FileSystem ID of EFS"
+                },
+                "LustreKeyPairName": {
+                    "default": "Lustre KeyPair Name"
+                },
+                "LustreOSSEBSVolumeSize": {
+                    "default": "Lustre OSS EBS Volume Size"
+                },
+                "NumberOfOSSNodes": {
+                    "default": "Number of OSS Nodes"
+                },
+                "SASGridInfraSize": {
+                    "default": "SASGrid Infra Size"
+                },
+                "SASGridLustePlacementGroup": {
+                    "default": "Placement group name of SASGrid and Lustre"
+                },
+                "SASGridSG": {
+                    "default": "Security Group ID of SASGrid Instances"
+                },
+                "PrivateSubnet2ID": {
+                    "default": "Lustre Subnet ID"
+                },
+                "VPCID": {
+                    "default": "VPC ID"
+                },
+                "RDGWSG": {
+                    "default": "Security Group ID of RDGW Instance"
+                }
+            }
+        }
+    },
+    "Parameters": {
+        "SASGridInfraSize": {
+            "Type": "String",
+            "Default": "Small",
+            "AllowedValues": [
+                "Small",
+                "Medium",
+                "Large"
+            ]
+        },
+        "LustreKeyPairName": {
+            "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "PrivateSubnet2ID": {
+            "Description": "Select the Subnet ID of a private subnet 2 located in Availability Zone 1.",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "NumberOfOSSNodes": {
+            "Description": "Provide the number of OSS Node instances are required",
+            "Type": "Number",
+            "MinValue": "3",
+            "MaxValue": "15",
+            "Default": "3"
+        },
+        "SASGridLustePlacementGroup": {
+            "Description": "Enter the Name of Placement Group",
+            "Type": "String",
+            "MinLength": "1",
+            "MaxLength": "400"
+        },
+        "LustreOSSEBSVolumeSize": {
+            "Description": "Provide size(in GB) of SASData Volume for SASGrid Instances",
+            "Type": "String",
+            "MinLength": "1",
+            "MaxLength": "4",
+            "Default": "10"
+        },
+        "VPCID": {
+            "Description": "Select the ID of an existing VPC",
+            "Type": "AWS::EC2::VPC::Id"
+        },
+        "RDGWSG": {
+            "Description": "ID of the Security Group (e.g., sg-0343606e)",
+            "Type": "AWS::EC2::SecurityGroup::Id"
+        },
+        "SASGridSG": {
+            "Description": "ID of the Security Group (e.g., sg-0343606e)",
+            "Type": "AWS::EC2::SecurityGroup::Id"
+        },
+        "EFSFileSystemId": {
+            "Description": "Enter the Filesystem ID of EFS",
+            "Type": "String",
+            "MinLength": "1",
+            "MaxLength": "400"
+        },
+        "DomainDNSName": {
+            "AllowedPattern": "[a-zA-Z0-9]+\\..+",
+            "Default": "example.com",
+            "Description": "Fully qualified domain name (FQDN) of the forest root domain e.g. example.com",
+            "MaxLength": "25",
+            "MinLength": "3",
+            "Type": "String"
+        }
+    },
+    "Mappings": {
+        "AWSAMIRegionMap": {
+            "AMI": {
+                "LUSTREAMI": "Lustre MarketPlace"
+            },
+            "us-east-1": {
+                "LUSTREAMI": "ami-c91df4df"
+            },
+            "us-west-1": {
+                "LUSTREAMI": "ami-97e4b7f7"
+            },
+            "us-west-2": {
+                "LUSTREAMI": "ami-ae55e9ce"
+            },
+            "eu-west-1": {
+                "LUSTREAMI": "ami-85ecd8f6"
+            },
+            "eu-central-1": {
+                "LUSTREAMI": "ami-b68e41d9"
+            },
+            "ap-southeast-1": {
+                "LUSTREAMI": "ami-36fb5155"
+            },
+            "ap-southeast-2": {
+                "LUSTREAMI": "ami-06e1e565"
+            },
+            "ap-northeast-2": {
+                "LUSTREAMI": "ami-67a57409"
+            },
+            "ap-northeast-1": {
+                "LUSTREAMI": "ami-7a512f1d"
+            },
+            "ap-south-1": {
+                "LUSTREAMI": "ami-dbf88eb4"
+            },
+            "sa-east-1": {
+                "LUSTREAMI": "ami-1d24be71"
+            }
+        },
+        "InfraSizeMap": {
+            "Small": {
+                "LustreOSSInstanceType": "c4.8xlarge",
+                "LustreMGTInstanceType": "c4.xlarge",
+                "LustreMDTInstanceType": "c4.4xlarge",
+                "NoOfSASGridInstances": "2",
+                "NoOfSASGridMetadataInstances": "1",
+                "NoOfSASGridMidtierInstances": "1",
+                "NoOfLustreMGTInstances": "1",
+                "NoOfLustreMDTInstances": "1"
+            },
+            "Medium": {
+                "LustreOSSInstanceType": "c4.8xlarge",
+                "LustreMGTInstanceType": "c4.xlarge",
+                "LustreMDTInstanceType": "c4.4xlarge",
+                "NoOfSASGridInstances": "4",
+                "NoOfSASGridMetadataInstances": "1",
+                "NoOfSASGridMidtierInstances": "1",
+                "NoOfLustreMGTInstances": "1",
+                "NoOfLustreMDTInstances": "1"
+            },
+            "Large": {
+                "LustreOSSInstanceType": "c4.8xlarge",
+                "LustreMGTInstanceType": "c4.xlarge",
+                "LustreMDTInstanceType": "c4.4xlarge",
+                "NoOfSASGridInstances": "6",
+                "NoOfSASGridMetadataInstances": "1",
+                "NoOfSASGridMidtierInstances": "1",
+                "NoOfLustreMGTInstances": "1",
+                "NoOfLustreMDTInstances": "1"
+            }
+        }
+    },
+    "Resources": {
+        "MGTNode": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "InstanceType": {
+                    "Fn::FindInMap": [
+                        "InfraSizeMap",
+                        {
+                            "Ref": "SASGridInfraSize"
+                        },
+                        "LustreMGTInstanceType"
+                    ]
+                },
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "AWSAMIRegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "LUSTREAMI"
+                    ]
+                },
+                "KeyName": {
+                    "Ref": "LustreKeyPairName"
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "LustreMGTSG"
+                    }
+                ],
+                "SubnetId": {
+                    "Ref": "PrivateSubnet2ID"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Lustre MGS Node"
+                    },
+                    {
+                        "Key": "Created By",
+                        "Value": "CoreCompete-AWS_Quick_Start"
+                    }
+                ],
+                "PlacementGroupName": {
+                    "Ref": "SASGridLustePlacementGroup"
+                },
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": "50"
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdf",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": "20"
+                        }
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash \n",
+                                "set -x\n",
+                                "\n",
+                                "trap read debug\n",
+                                "\n",
+                                "exec 1>/tmp/bootstrap.log 2>&1\n",
+                                "\n",
+                                "/sbin/resize2fs /dev/xvda1\n",
+                                "yum -y update\n",
+                                "systemctl disable firewalld \n",
+                                "service firewalld stop \n",
+                                "useradd -u 501 sasinst && useradd -u 502 lsfadmin \n",
+                                "mkdir /efs_mount /lsf_config \n",
+                                "mkfs.lustre --fsname lustre --reformat --mgs /dev/xvdf \n",
+                                "UUID=`blkid | grep xvdf | sed 's/.*UUID=//' | cut -d' ' -f1` && echo 'UUID='$UUID'   /lsf_config lustre defaults,_netdev 0 0' >> /etc/fstab \n",
+                                "mount /lsf_config \n",
+                                "yum -y install vim wget mlocate nfs-utils libnfsidmap \n",
+                                "systemctl enable rpcbind && systemctl start rpcbind \n",
+                                "echo '",
+                                {
+                                    "Ref": "EFSFileSystemId"
+                                },
+                                ".efs.",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ".amazonaws.com:/ /efs_mount nfs nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0' >> /etc/fstab \n",
+                                "until mount /efs_mount \n",
+                                "do \n",
+                                "echo 'Sleeping for 10 seconds' \n",
+                                "sleep 10 \n",
+                                "done \n",
+                                "TOTALNODES=$((",
+                                {
+                                    "Ref": "NumberOfOSSNodes"
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMGTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMDTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMetadataInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMidtierInstances"
+                                    ]
+                                },
+                                ")) \n",
+                                "LustreMGTNodes=",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMGTInstances"
+                                    ]
+                                },
+                                "\n",
+                                "mkdir /efs_mount/LustreMGTNodes \n",
+                                "IP=`ifconfig eth0 | grep 'inet ' | cut -d: -f2 | awk '{print $2}'` && touch /efs_mount/LustreMGTNodes/$IP \n",
+                                "NoOfNodes=`ls /efs_mount/LustreMGTNodes | wc -l` \n",
+                                "until [ $NoOfNodes -eq $LustreMGTNodes ] \n",
+                                "do \n",
+                                "echo 'No of IPs are not equal to no of sas grid instances' \n",
+                                "NoOfNodes=`ls /efs_mount/LustreMGTNodes | wc -l` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "NodeNumber=`ls /efs_mount/LustreMGTNodes | nl > /tmp/temp && cat /tmp/temp | grep $IP | cut -f1 | sed -r 's/ //g'` \n",
+                                "DOMAIN=",
+                                {
+                                    "Ref": "DomainDNSName"
+                                },
+                                "\n",
+                                "echo 'mgtnode'$NodeNumber'-quickstart.'$DOMAIN'' > /etc/hostname && echo ''$IP'   mgtnode'$NodeNumber'-quickstart.'$DOMAIN' mgtnode'$NodeNumber'-quickstart' >> /efs_mount/hostsfile \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "until [ $HOSTFILEENTRY -eq $TOTALNODES ] \n",
+                                "do \n",
+                                "echo 'No of hostfile entries are not equal to no of Total nodes' \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "cat /efs_mount/hostsfile >> /etc/hosts \n",
+                                "echo 'BootStrap completed successfully' \n",
+                                "mkdir -p /etc/local/runonce.d/ran \n",
+                                "(echo '@reboot /usr/local/bin/runonce') | crontab - \n",
+                                "echo '#!/bin/sh' > /usr/local/bin/runonce \n",
+                                "echo 'for file in /etc/local/runonce.d/*' >> /usr/local/bin/runonce \n",
+                                "echo 'do' >> /usr/local/bin/runonce \n",
+                                "echo '   if [ ! -f `$file` ]' >> /usr/local/bin/runonce \n",
+                                "echo '   then' >> /usr/local/bin/runonce \n",
+                                "echo '        continue' >> /usr/local/bin/runonce \n",
+                                "echo '   fi' >> /usr/local/bin/runonce \n",
+                                "echo '   ./`$file`' >> /usr/local/bin/runonce \n",
+                                "echo '   mv `$file` `/etc/local/runonce.d/ran/$file.$(date +%Y%m%dT%H%M%S)`' >> /usr/local/bin/runonce \n",
+                                "echo '   logger -t runonce -p local3.info `$file`' >> /usr/local/bin/runonce \n",
+                                "echo 'done' >> /usr/local/bin/runonce \n",
+                                "chmod +x /usr/local/bin/runonce \n",
+                                "echo '#!/bin/bash' > /etc/local/runonce.d/reboot_nodes.sh \n",
+                                "echo 'echo Reboot=Yes > /efs_mount/reboot.txt' >> /etc/local/runonce.d/reboot_nodes.sh \n",
+                                "chmod +x /etc/local/runonce.d/reboot_nodes.sh \n",
+                                "echo 'Server will now reboot' \n",
+                                "updatedb && reboot \n"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "LustreMGTSG"
+            ]
+        },
+        "LustreMGTRecovery": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": "Trigger a recovery when instance status check fails for 15 consecutive minutes.",
+                "Namespace": "AWS/EC2",
+                "MetricName": "StatusCheckFailed_System",
+                "Statistic": "Minimum",
+                "Period": "60",
+                "EvaluationPeriods": "15",
+                "ComparisonOperator": "GreaterThanThreshold",
+                "Threshold": "0",
+                "AlarmActions": [
+                    {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:automate:",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ":ec2:recover"
+                            ]
+                        ]
+                    }
+                ],
+                "Dimensions": [
+                    {
+                        "Name": "InstanceId",
+                        "Value": {
+                            "Ref": "MGTNode"
+                        }
+                    }
+                ]
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "MGTNode"
+            ]
+        },
+        "MDTNode": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "InstanceType": {
+                    "Fn::FindInMap": [
+                        "InfraSizeMap",
+                        {
+                            "Ref": "SASGridInfraSize"
+                        },
+                        "LustreMDTInstanceType"
+                    ]
+                },
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "AWSAMIRegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "LUSTREAMI"
+                    ]
+                },
+                "KeyName": {
+                    "Ref": "LustreKeyPairName"
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "LustreMDTSG"
+                    }
+                ],
+                "SubnetId": {
+                    "Ref": "PrivateSubnet2ID"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Lustre MDS Node"
+                    },
+                    {
+                        "Key": "Created By",
+                        "Value": "CoreCompete-AWS_Quick_Start"
+                    }
+                ],
+                "PlacementGroupName": {
+                    "Ref": "SASGridLustePlacementGroup"
+                },
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": "50"
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdf",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": "20"
+                        }
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash \n",
+                                "set -x\n",
+                                "\n",
+                                "trap read debug\n",
+                                "\n",
+                                "exec 1>/tmp/bootstrap.log 2>&1\n",
+                                "\n",
+                                "/sbin/resize2fs /dev/xvda1\n",
+                                "yum -y update\n",
+                                "systemctl disable firewalld \n",
+                                "service firewalld stop \n",
+                                "useradd -u 501 sasinst && useradd -u 502 lsfadmin \n",
+                                "yum -y install vim wget mlocate nfs-utils libnfsidmap \n",
+                                "systemctl enable rpcbind && systemctl start rpcbind \n",
+                                "mkdir /efs_mount /lsf_config \n",
+                                "echo '",
+                                {
+                                    "Ref": "EFSFileSystemId"
+                                },
+                                ".efs.",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ".amazonaws.com:/ /efs_mount nfs nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0' >> /etc/fstab \n",
+                                "until mount /efs_mount \n",
+                                "do \n",
+                                "echo 'Sleeping for 10 seconds' \n",
+                                "sleep 10 \n",
+                                "done \n",
+                                "TOTALNODES=$((",
+                                {
+                                    "Ref": "NumberOfOSSNodes"
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMGTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMDTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMetadataInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMidtierInstances"
+                                    ]
+                                },
+                                ")) \n",
+                                "LustreMDTNodes=",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMDTInstances"
+                                    ]
+                                },
+                                "\n",
+                                "mkdir /efs_mount/LustreMDTNodes \n",
+                                "IP=`ifconfig eth0 | grep 'inet ' | cut -d: -f2 | awk '{print $2}'` && touch /efs_mount/LustreMDTNodes/$IP \n",
+                                "NoOfNodes=`ls /efs_mount/LustreMDTNodes | wc -l` \n",
+                                "until [ $NoOfNodes -eq $LustreMDTNodes ] \n",
+                                "do \n",
+                                "echo 'No of IPs are not equal to no of sas grid instances' \n",
+                                "NoOfNodes=`ls /efs_mount/LustreMDTNodes | wc -l` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "NodeNumber=`ls /efs_mount/LustreMDTNodes | nl > /tmp/temp && cat /tmp/temp | grep $IP | cut -f1 | sed -r 's/ //g'` \n",
+                                "DOMAIN=",
+                                {
+                                    "Ref": "DomainDNSName"
+                                },
+                                "\n",
+                                "echo 'mdtnode'$NodeNumber'-quickstart.'$DOMAIN'' > /etc/hostname && echo ''$IP'   mdtnode'$NodeNumber'-quickstart.'$DOMAIN' mdtnode'$NodeNumber'-quickstart' >> /efs_mount/hostsfile \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "until [ $HOSTFILEENTRY -eq $TOTALNODES ] \n",
+                                "do \n",
+                                "echo 'No of hostfile entries are not equal to no of Total nodes' \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "cat /efs_mount/hostsfile >> /etc/hosts \n",
+                                "mkfs.lustre --fsname lustre --mdt --reformat --mgsnode=mgtnode1-quickstart@tcp --index=0 /dev/xvdf \n",
+                                "UUID=`blkid | grep xvdf | sed 's/.*UUID=//' | cut -d' ' -f1` && echo 'UUID='$UUID'   /lsf_config lustre defaults,_netdev 0 0' >> /etc/fstab \n",
+                                "echo 'BootStrap completed successfully' \n",
+                                "until [ -f /efs_mount/reboot.txt ] \n",
+                                "do \n",
+                                "echo 'Waiting for Lustre MGT Node to restart' \n",
+                                "sleep 10 \n",
+                                "done \n",
+                                "echo 'Server will now reboot' \n",
+                                "updatedb && reboot \n"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "MGTNode",
+                "LustreMDTSG"
+            ]
+        },
+        "LustreMDTRecovery": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": "Trigger a recovery when instance status check fails for 15 consecutive minutes.",
+                "Namespace": "AWS/EC2",
+                "MetricName": "StatusCheckFailed_System",
+                "Statistic": "Minimum",
+                "Period": "60",
+                "EvaluationPeriods": "15",
+                "ComparisonOperator": "GreaterThanThreshold",
+                "Threshold": "0",
+                "AlarmActions": [
+                    {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:automate:",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ":ec2:recover"
+                            ]
+                        ]
+                    }
+                ],
+                "Dimensions": [
+                    {
+                        "Name": "InstanceId",
+                        "Value": {
+                            "Ref": "MDTNode"
+                        }
+                    }
+                ]
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "MDTNode"
+            ]
+        },
+        "LustreMGTSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPCID"
+                },
+                "GroupDescription": "This SG is created for Lustre MGT Node",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Lustre_MGT_Node_SG"
+                    },
+                    {
+                        "Key": "Create By",
+                        "Value": "CoreCompete"
+                    },
+                    {
+                        "Key": "Project",
+                        "Value": "AWS Quick Start - SAS Grid with Lustre"
+                    }
+                ],
+                "SecurityGroupIngress": []
+            },
+            "Metadata": {
+            }
+        },
+        "LustreMDTSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPCID"
+                },
+                "GroupDescription": "This SG is created for Lustre MDT Node",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Lustre_MDT_Node_SG"
+                    },
+                    {
+                        "Key": "Create By",
+                        "Value": "CoreCompete"
+                    },
+                    {
+                        "Key": "Project",
+                        "Value": "AWS Quick Start - SAS Grid with Lustre"
+                    }
+                ],
+                "SecurityGroupIngress": []
+            },
+            "Metadata": {
+            },
+            "DependsOn": []
+        },
+        "LustreOSSSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPCID"
+                },
+                "GroupDescription": "This SG is created for Lustre OSS Nodes",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Lustre_OSS_Node_SG"
+                    },
+                    {
+                        "Key": "Create By",
+                        "Value": "CoreCompete"
+                    },
+                    {
+                        "Key": "Project",
+                        "Value": "AWS Quick Start - SAS Grid with Lustre"
+                    }
+                ],
+                "SecurityGroupIngress": []
+            },
+            "Metadata": {
+            }
+        },
+        "MGTAllowLustreMDTSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreMGTSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "LustreMDTSG"
+                }
+            },
+            "Metadata": {
+            }
+        },
+        "MGTAllowLustreOSSSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreMGTSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "LustreOSSSG"
+                }
+            },
+            "Metadata": {
+            }
+        },
+        "MGTAllowSASGridSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreMGTSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "SASGridSG"
+                }
+            }
+        },
+        "MGTAllowRDGWSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreMGTSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "RDGWSG"
+                }
+            }
+        },
+        "MDTAllowLustreMGTSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreMDTSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "LustreMGTSG"
+                }
+            },
+            "Metadata": {
+            }
+        },
+        "MDTAllowLustreOSSSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreMDTSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "LustreOSSSG"
+                }
+            },
+            "Metadata": {
+            }
+        },
+        "MDTAllowSASGridSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreMDTSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "SASGridSG"
+                }
+            }
+        },
+        "MDTAllowRDGWSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreMDTSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "RDGWSG"
+                }
+            }
+        },
+        "OSSAllowLustreMGTSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreOSSSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "LustreMGTSG"
+                }
+            },
+            "Metadata": {
+            }
+        },
+        "OSSAllowLustreMDTSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreOSSSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "LustreMDTSG"
+                }
+            },
+            "Metadata": {
+            }
+        },
+        "OSSAllowLustreOSSSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreOSSSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "LustreOSSSG"
+                }
+            },
+            "Metadata": {
+            }
+        },
+        "OSSAllowRDGWSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreOSSSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "RDGWSG"
+                }
+            }
+        },
+        "OSSAllowSASGridSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "LustreOSSSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "SASGridSG"
+                }
+            }
+        },
+        "LustreOSSAllowSASGridSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "SASGridSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "LustreOSSSG"
+                }
+            }
+        },
+        "LustreMDTAllowSASGridSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "SASGridSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "LustreMDTSG"
+                }
+            }
+        },
+        "LustreMGTAllowSASGridSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "SASGridSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "LustreMGTSG"
+                }
+            }
+        },
+        "LambdaExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                ],
+                "Policies": [
+                    {
+                        "PolicyName": "EC2Policy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ec2:RunInstances",
+                                        "ec2:DescribeInstances",
+                                        "ec2:DescribeInstanceStatus",
+                                        "ec2:TerminateInstances"
+                                    ],
+                                    "Resource": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "Metadata": {
+            }
+        },
+        "EC2InstancesFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Handler": "index.handler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaExecutionRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "ZipFile": {
+                        "Fn::Sub": "var response = require('cfn-response');\nvar AWS = require('aws-sdk');\nexports.handler = function(event, context) {\n  var physicalId = event.PhysicalResourceId || 'none';\n  function success(data) {\n    return response.send(event, context, response.SUCCESS, data, physicalId);\n  }\n  function failed(e) {\n    return response.send(event, context, response.FAILED, e, physicalId);\n  }\n  var ec2 = new AWS.EC2();\n  var instances;\n  if (event.RequestType == 'Create') {\n    var launchParams = event.ResourceProperties;\n    delete launchParams.ServiceToken;\n    ec2.runInstances(launchParams).promise().then((data)=> {\n      instances = data.Instances.map((data)=> data.InstanceId);\n      physicalId = instances.join(':');\n      return ec2.waitFor('instanceRunning', {InstanceIds: instances}).promise();\n    }).then((data)=> success({Instances: instances})\n    ).catch((e)=> failed(e));\n  } else if (event.RequestType == 'Delete') {\n    if (physicalId == 'none') {return success({});}\n    var deleteParams = {InstanceIds: physicalId.split(':')};\n    ec2.terminateInstances(deleteParams).promise().then((data)=>\n      ec2.waitFor('instanceTerminated', deleteParams).promise()\n    ).then((data)=>success({})\n    ).catch((e)=>failed(e));\n  } else {\n    return failed({Error: \"In-place updates not supported.\"});\n  }\n};\n"
+                    }
+                },
+                "Runtime": "nodejs4.3",
+                "Timeout": 300
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "LambdaExecutionRole",
+                "LustreOSSSG",
+                "MGTNode"
+            ]
+        },
+        "OSSEC2Instances": {
+            "Type": "Custom::EC2Instances",
+            "Properties": {
+                "ServiceToken": {
+                    "Fn::GetAtt": [
+                        "EC2InstancesFunction",
+                        "Arn"
+                    ]
+                },
+                "MinCount": {
+                    "Ref": "NumberOfOSSNodes"
+                },
+                "MaxCount": {
+                    "Ref": "NumberOfOSSNodes"
+                },
+                "SubnetId": {
+                    "Ref": "PrivateSubnet2ID"
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "LustreOSSSG"
+                    }
+                ],
+                "InstanceType": {
+                    "Fn::FindInMap": [
+                        "InfraSizeMap",
+                        {
+                            "Ref": "SASGridInfraSize"
+                        },
+                        "LustreOSSInstanceType"
+                    ]
+                },
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "AWSAMIRegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "LUSTREAMI"
+                    ]
+                },
+                "KeyName": {
+                    "Ref": "LustreKeyPairName"
+                },
+                "Placement": {
+                    "GroupName": {
+                        "Ref": "SASGridLustePlacementGroup"
+                    }
+                },
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": "50"
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdf",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Ref": "LustreOSSEBSVolumeSize"
+                            }
+                        }
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash \n",
+                                "set -x\n",
+                                "\n",
+                                "trap read debug\n",
+                                "\n",
+                                "exec 1>/tmp/bootstrap.log 2>&1\n",
+                                "\n",
+                                "/sbin/resize2fs /dev/xvda1\n",
+                                "yum -y update\n",
+                                "systemctl disable firewalld \n",
+                                "service firewalld stop",
+                                "useradd -u 502 lsfadmin \n",
+                                "yum -y install vim wget mlocate nfs-utils libnfsidmap \n",
+                                "systemctl enable rpcbind && systemctl start rpcbind \n",
+                                "mkdir /efs_mount /lsf_data \n",
+                                "echo '",
+                                {
+                                    "Ref": "EFSFileSystemId"
+                                },
+                                ".efs.",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ".amazonaws.com:/ /efs_mount nfs nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0' >> /etc/fstab \n",
+                                "until mount /efs_mount \n",
+                                "do \n",
+                                "echo 'Sleeping for 10 seconds' \n",
+                                "sleep 10 \n",
+                                "done \n",
+                                "TOTALNODES=$((",
+                                {
+                                    "Ref": "NumberOfOSSNodes"
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMGTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMDTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMetadataInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMidtierInstances"
+                                    ]
+                                },
+                                ")) \n",
+                                "LustreOSSNodes=",
+                                {
+                                    "Ref": "NumberOfOSSNodes"
+                                },
+                                "\n",
+                                "mkdir /efs_mount/LustreOSSNodes \n",
+                                "IP=`ifconfig eth0 | grep 'inet ' | cut -d: -f2 | awk '{print $2}'` && touch /efs_mount/LustreOSSNodes/$IP \n",
+                                "NoOfNodes=`ls /efs_mount/LustreOSSNodes | wc -l` \n",
+                                "until [ $NoOfNodes -eq $LustreOSSNodes ] \n",
+                                "do \n",
+                                "echo 'No of IPs are not equal to no of sas grid instances' \n",
+                                "NoOfNodes=`ls /efs_mount/LustreOSSNodes | wc -l` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "NodeNumber=`ls /efs_mount/LustreOSSNodes | nl > /tmp/temp && cat /tmp/temp | grep $IP | cut -f1 | sed -r 's/ //g'` \n",
+                                "DOMAIN=",
+                                {
+                                    "Ref": "DomainDNSName"
+                                },
+                                "\n",
+                                "echo 'ossnode'$NodeNumber'-quickstart.'$DOMAIN'' > /etc/hostname && echo ''$IP'   ossnode'$NodeNumber'-quickstart.'$DOMAIN' ossnode'$NodeNumber'-quickstart' >> /efs_mount/hostsfile \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "until [ $HOSTFILEENTRY -eq $TOTALNODES ] \n",
+                                "do \n",
+                                "echo 'No of hostfile entries are not equal to no of Total nodes' \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "cat /efs_mount/hostsfile >> /etc/hosts \n",
+                                "echo 'mkfs.lustre --fsname lustre --reformat --ost --mgsnode=mgtnode1-quickstart@tcp --index='$NodeNumber' /dev/xvdf' > /tmp/temp.sh && chmod +x /tmp/temp.sh && /bin/bash /tmp/temp.sh \n",
+                                "UUID=`blkid | grep xvdf | sed 's/.*UUID=//' | cut -d' ' -f1` && echo 'UUID='$UUID'   /lsf_data lustre defaults,_netdev 0 0' >> /etc/fstab \n",
+                                "echo 'BootStrap completed successfully' \n",
+                                "until [ -f /efs_mount/reboot.txt ] \n",
+                                "do \n",
+                                "echo 'Waiting for Lustre MGT Node to restart' \n",
+                                "sleep 10 \n",
+                                "done \n",
+                                "echo 'Server will now reboot' \n",
+                                "updatedb && reboot \n"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "EC2InstancesFunction",
+                "LustreOSSSG",
+                "MGTNode"
+            ]
+        },
+        "LustreOSSRecovery": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": "Trigger a recovery when instance status check fails for 15 consecutive minutes.",
+                "Namespace": "AWS/EC2",
+                "MetricName": "StatusCheckFailed_System",
+                "Statistic": "Minimum",
+                "Period": "60",
+                "EvaluationPeriods": "15",
+                "ComparisonOperator": "GreaterThanThreshold",
+                "Threshold": "0",
+                "AlarmActions": [
+                    {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:automate:",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ":ec2:recover"
+                            ]
+                        ]
+                    }
+                ],
+                "Dimensions": [
+                    {
+                        "Name": "InstanceId",
+                        "Value": {
+                            "Ref": "OSSEC2Instances"
+                        }
+                    }
+                ]
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "OSSEC2Instances"
+            ]
+        }
+    }
+}
