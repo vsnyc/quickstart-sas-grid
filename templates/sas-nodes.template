@@ -1,0 +1,1190 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This template creates a SASGrid infrastructure in a single AZ. It will deploy a EFS Filesystem, Mout Target, Security Group, Placement Group, 2 EC2 instances, 1 AutoScaling Group and Launch Configuration for SASGrid in a private subnet. **WARNING** This template creates Amazon EC2 RHEL instances and dependent resources. You will be billed for the AWS resources used if you create a stack from this template.",
+    "Metadata": {
+        "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+                        "VPCID",
+                        "PrivateSubnet1ID",
+                        "RDGWSG"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "SASGrid EC2 Configuration"
+                    },
+                    "Parameters": [
+                        "SASGridInfraSize",
+                        "SASGridKeyPairName"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Lustre EC2 Configuration"
+                    },
+                    "Parameters": [
+                        "NumberOfOSSNodes"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "AWS Quick Start Configuration"
+                    },
+                    "Parameters": [
+                        "DomainDNSName"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+                "DomainDNSName": {
+                    "default": "Domain DNS Name"
+                },
+                "NumberOfOSSNodes": {
+                    "default": "Number of OSS Nodes"
+                },
+                "SASGridInfraSize": {
+                    "default": "SASGrid Infra Size"
+                },
+                "SASGridKeyPairName": {
+                    "default": "SASGrid KeyPair Name"
+                },
+                "PrivateSubnet1ID": {
+                    "default": "SASGrid Subnet ID"
+                },
+                "VPCID": {
+                    "default": "VPC ID"
+                },
+                "RDGWSG": {
+                    "default": "Security Group ID of RDGW Instance"
+                }
+            }
+        }
+    },
+    "Parameters": {
+        "PrivateSubnet1ID": {
+            "Description": "ID of the public subnet 1 that you want to provision the first Remote Desktop Gateway into (e.g., subnet-a0246dcd)",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "SASGridKeyPairName": {
+            "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "SASGridInfraSize": {
+            "Type": "String",
+            "Default": "Small",
+            "AllowedValues": [
+                "Small",
+                "Medium",
+                "Large"
+            ]
+        },
+        "VPCID": {
+            "Description": "ID of the VPC (e.g., vpc-0343606e)",
+            "Type": "AWS::EC2::VPC::Id"
+        },
+        "RDGWSG": {
+            "Description": "ID of the VPC (e.g., vpc-0343606e)",
+            "Type": "AWS::EC2::SecurityGroup::Id"
+        },
+        "NumberOfOSSNodes": {
+            "Description": "Provide the number of OSS Node instances are required",
+            "Type": "Number",
+            "MinValue": "3",
+            "MaxValue": "15",
+            "Default": "3"
+        },
+        "DomainDNSName": {
+            "AllowedPattern": "[a-zA-Z0-9]+\\..+",
+            "Default": "example.com",
+            "Description": "Fully qualified domain name (FQDN) of the forest root domain e.g. example.com",
+            "MaxLength": "25",
+            "MinLength": "3",
+            "Type": "String"
+        }
+    },
+    "Mappings": {
+        "AWSAMIRegionMap": {
+            "AMI": {
+                "REDHAT": "Red Hat Enterprise Linux 7.3",
+                "WINDOWS": "Windows_Server-2012-R2_RTM-English-64Bit-Base",
+                "LUSTREAMI": "Lustre MarketPlace"
+            },
+            "us-east-1": {
+                "REDHAT": "ami-b63769a1",
+                "LUSTREAMI": "ami-c91df4df",
+                "WINDOWS": "ami-11e84107"
+            },
+            "us-west-1": {
+                "REDHAT": "ami-2cade64c",
+                "LUSTREAMI": "ami-97e4b7f7",
+                "WINDOWS": "ami-052d7565"
+            },
+            "us-west-2": {
+                "REDHAT": "ami-6f68cf0f",
+                "LUSTREAMI": "ami-ae55e9ce",
+                "WINDOWS": "ami-09f47d69"
+            },
+            "eu-west-1": {
+                "REDHAT": "ami-02ace471",
+                "LUSTREAMI": "ami-85ecd8f6",
+                "WINDOWS": "ami-d3dee9b5"
+            },
+            "ap-southeast-1": {
+                "REDHAT": "ami-2c95344f",
+                "LUSTREAMI": "ami-36fb5155",
+                "WINDOWS": "ami-e5a51786"
+            },
+            "ap-southeast-2": {
+                "REDHAT": "ami-39ac915a",
+                "LUSTREAMI": "ami-06e1e565",
+                "WINDOWS": "ami-a63934c5"
+            },
+            "ap-northeast-2": {
+                "REDHAT": "ami-44db152a",
+                "LUSTREAMI": "ami-67a57409",
+                "WINDOWS": "ami-34d4075a"
+            },
+            "ap-northeast-1": {
+                "REDHAT": "ami-5de0433c",
+                "LUSTREAMI": "ami-7a512f1d",
+                "WINDOWS": "ami-cb7429ac"
+            },
+            "ap-south-1": {
+                "REDHAT": "ami-cdbdd7a2",
+                "LUSTREAMI": "ami-dbf88eb4",
+                "WINDOWS": "ami-dd8cfcb2"
+            },
+            "sa-east-1": {
+                "REDHAT": "ami-7de77b11",
+                "LUSTREAMI": "ami-1d24be71",
+                "WINDOWS": "ami-83f594ef"
+            }
+        },
+        "InfraSizeMap": {
+            "Small": {
+                "SASGridInstanceType": "i2.8xlarge",
+                "SASGridMetaInstanceType": "r4.xlarge",
+                "SASGridMidTierInstanceType": "r4.xlarge",
+                "NoOfSASGridInstances": "2",
+                "NoOfSASGridMetadataInstances": "1",
+                "NoOfSASGridMidtierInstances": "1",
+                "NoOfLustreMGTInstances": "1",
+                "NoOfLustreMDTInstances": "1"
+            },
+            "Medium": {
+                "SASGridInstanceType": "i2.8xlarge",
+                "SASGridMetaInstanceType": "r4.2xlarge",
+                "SASGridMidTierInstanceType": "r4.2xlarge",
+                "NoOfSASGridInstances": "4",
+                "NoOfSASGridMetadataInstances": "1",
+                "NoOfSASGridMidtierInstances": "1",
+                "NoOfLustreMGTInstances": "1",
+                "NoOfLustreMDTInstances": "1"
+            },
+            "Large": {
+                "SASGridInstanceType": "i2.8xlarge",
+                "SASGridMetaInstanceType": "r4.4xlarge",
+                "SASGridMidTierInstanceType": "r4.4xlarge",
+                "NoOfSASGridInstances": "6",
+                "NoOfSASGridMetadataInstances": "1",
+                "NoOfSASGridMidtierInstances": "1",
+                "NoOfLustreMGTInstances": "1",
+                "NoOfLustreMDTInstances": "1"
+            }
+        }
+    },
+    "Resources": {
+        "EFSFileSystem": {
+            "Type": "AWS::EFS::FileSystem",
+            "Properties": {
+                "PerformanceMode": "generalPurpose",
+                "FileSystemTags": [
+                    {
+                        "Key": "Name",
+                        "Value": "SASGrid_Lustre_EFS_FileSystem"
+                    }
+                ]
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "SASGridSG"
+            ]
+        },
+        "MountTarget": {
+            "Type": "AWS::EFS::MountTarget",
+            "Properties": {
+                "FileSystemId": {
+                    "Ref": "EFSFileSystem"
+                },
+                "SubnetId": {
+                    "Ref": "PrivateSubnet1ID"
+                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "SASGridSG"
+                    }
+                ]
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "EFSFileSystem",
+                "SASGridSG"
+            ]
+        },
+        "SASGridSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPCID"
+                },
+                "GroupDescription": "This SG Created for SAS Grid Nodes",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "SASGrid_Nodes_SG"
+                    },
+                    {
+                        "Key": "Create By",
+                        "Value": "CoreCompete"
+                    },
+                    {
+                        "Key": "Project",
+                        "Value": "AWS Quick Start - SAS Grid with Lustre"
+                    }
+                ],
+                "SecurityGroupIngress": []
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "SASGridLustePlacementGroup"
+            ]
+        },
+        "AllowRDGWtoSASGrid": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "SASGridSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "RDGWSG"
+                }
+            }
+        },
+        "AllowSASGridSGtoSASGridSG": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "IpProtocol": "-1",
+                "GroupId": {
+                    "Ref": "SASGridSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "SASGridSG"
+                }
+            }
+        },
+        "SASGridLustePlacementGroup": {
+            "Type": "AWS::EC2::PlacementGroup",
+            "Properties": {},
+            "Metadata": {
+            }
+        },
+        "SASGridMidTier": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "InstanceType": {
+                    "Fn::FindInMap": [
+                        "InfraSizeMap",
+                        {
+                            "Ref": "SASGridInfraSize"
+                        },
+                        "SASGridMidTierInstanceType"
+                    ]
+                },
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "AWSAMIRegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "REDHAT"
+                    ]
+                },
+                "KeyName": {
+                    "Ref": "SASGridKeyPairName"
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "SASGridSG"
+                    }
+                ],
+                "SubnetId": {
+                    "Ref": "PrivateSubnet1ID"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "SASGrid MidTier"
+                    },
+                    {
+                        "Key": "Created By",
+                        "Value": "CoreCompete-AWS_Quick_Start"
+                    }
+                ],
+                "PlacementGroupName": {
+                    "Ref": "SASGridLustePlacementGroup"
+                },
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": "50"
+                        }
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash \n",
+                                "set -x\n",
+                                "\n",
+                                "trap read debug\n",
+                                "\n",
+                                "exec 1>/tmp/bootstrap.log 2>&1\n",
+                                "\n",
+                                "mkdir /sas /efs_mount \n",
+                                "sed -i.bak s/PasswordAuthentication' 'no/PasswordAuthentication' 'yes/g /etc/ssh/sshd_config \n",
+                                "yum -y update \n",
+                                "yum-config-manager --enable rhui-REGION-rhel-server-optional \n",
+                                "yum -y install vim wget ed xorg-x11-xauth.x86_64 xorg-x11-server-utils.x86_64 dbus-x11.x86_64 libXrender libXtst libstdc++.so.5 mlocate nfs-utils libnfsidmap \n",
+                                "wget -O /tmp/lustreclient.tar https://s3.amazonaws.com/aws-quick-start-sas-grid/lustreclient.tar \n",
+                                "systemctl enable rpcbind && systemctl start rpcbind \n",
+                                "tar -xvf /tmp/lustreclient.tar -C /tmp/ && cd /tmp/lustreclient/ && yum -y localinstall *.rpm \n",
+                                "sed -i.bak s/SELINUX=enforcing/SELINUX=disabled/g /etc/selinux/config \n",
+                                "useradd -u 501 sasinst && useradd -u 502 lsfadmin \n",
+                                "echo '",
+                                {
+                                    "Ref": "EFSFileSystem"
+                                },
+                                ".efs.",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ".amazonaws.com:/ /efs_mount nfs nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0' >> /etc/fstab \n",
+                                "until mount /efs_mount \n",
+                                "do \n",
+                                "echo 'Sleeping for 10 seconds' \n",
+                                "sleep 10 \n",
+                                "done \n",
+                                "TOTALNODES=$((",
+                                {
+                                    "Ref": "NumberOfOSSNodes"
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMGTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMDTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMetadataInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMidtierInstances"
+                                    ]
+                                },
+                                ")) \n",
+                                "SASGridMidTierNodes=",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMidtierInstances"
+                                    ]
+                                },
+                                "\n",
+                                "mkdir /efs_mount/SASGridMidTierNodes \n",
+                                "IP=`ifconfig eth0 | grep 'inet ' | cut -d: -f2 | awk '{print $2}'` && touch /efs_mount/SASGridMidTierNodes/$IP \n",
+                                "NoOfNodes=`ls /efs_mount/SASGridMidTierNodes | wc -l` \n",
+                                "until [ $NoOfNodes -eq $SASGridMidTierNodes ] \n",
+                                "do \n",
+                                "echo 'No of IPs are not equal to no of sas grid instances' \n",
+                                "NoOfNodes=`ls /efs_mount/SASGridMidTierNodes | wc -l` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "NodeNumber=`ls /efs_mount/SASGridMidTierNodes | nl > /tmp/temp && cat /tmp/temp | grep $IP | cut -f1 | sed -r 's/ //g'` \n",
+                                "DOMAIN=",
+                                {
+                                    "Ref": "DomainDNSName"
+                                },
+                                "\n",
+                                "echo 'sasgridmidtier'$NodeNumber'-quickstart.'$DOMAIN'' > /etc/hostname && echo ''$IP'   sasgridmidtier'$NodeNumber'-quickstart.'$DOMAIN' sasgridmidtier'$NodeNumber'-quickstart' >> /efs_mount/hostsfile \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "until [ $HOSTFILEENTRY -eq $TOTALNODES ] \n",
+                                "do \n",
+                                "echo 'No of hostfile entries are not equal to no of Total nodes' \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "cat /efs_mount/hostsfile >> /etc/hosts \n",
+                                "mkdir -p /etc/local/runonce.d \n",
+                                "(echo '@reboot /usr/local/bin/lustre_mount') | crontab - \n",
+                                "echo '#!/bin/sh' > /usr/local/bin/lustre_mount \n",
+                                "echo 'for file in /etc/local/runonce.d/*' >> /usr/local/bin/lustre_mount \n",
+                                "echo 'do' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   if [ ! -f `$file` ]' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   then' >> /usr/local/bin/lustre_mount \n",
+                                "echo '        continue' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   fi' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   `$file`' >> /usr/local/bin/lustre_mount \n",
+                                "echo 'done' >> /usr/local/bin/lustre_mount \n",
+                                "chmod +x /usr/local/bin/lustre_mount \n",
+                                "echo '#!/bin/bash' > /etc/local/runonce.d/lustre_mount.sh \n",
+                                "echo 'mount -t lustre mgtnode1-quickstart@tcp:/lustre -o flock /sas' >> /etc/local/runonce.d/lustre_mount.sh \n",
+                                "chmod +x /etc/local/runonce.d/lustre_mount.sh \n",
+                                "echo 'BootStrap completed successfully' \n",
+                                "until [ -f /efs_mount/reboot.txt ] \n",
+                                "do \n",
+                                "echo 'Waiting for Lustre MGT Node to restart' \n",
+                                "sleep 10 \n",
+                                "done \n",
+                                "echo 'Server will now reboot' \n",
+                                "updatedb && reboot \n"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "SASGridSG"
+            ]
+        },
+        "SASGridMetadata": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "InstanceType": {
+                    "Fn::FindInMap": [
+                        "InfraSizeMap",
+                        {
+                            "Ref": "SASGridInfraSize"
+                        },
+                        "SASGridMetaInstanceType"
+                    ]
+                },
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "AWSAMIRegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "REDHAT"
+                    ]
+                },
+                "KeyName": {
+                    "Ref": "SASGridKeyPairName"
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "SASGridSG"
+                    }
+                ],
+                "SubnetId": {
+                    "Ref": "PrivateSubnet1ID"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "SASGrid Metadata"
+                    },
+                    {
+                        "Key": "Created By",
+                        "Value": "CoreCompete-AWS_Quick_Start"
+                    }
+                ],
+                "PlacementGroupName": {
+                    "Ref": "SASGridLustePlacementGroup"
+                },
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": "50"
+                        }
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash \n",
+                                "set -x\n",
+                                "\n",
+                                "trap read debug\n",
+                                "\n",
+                                "exec 1>/tmp/bootstrap.log 2>&1\n",
+                                "\n",
+                                "mkdir /sas /efs_mount \n",
+                                "sed -i.bak s/PasswordAuthentication' 'no/PasswordAuthentication' 'yes/g /etc/ssh/sshd_config \n",
+                                "yum -y update \n",
+                                "yum-config-manager --enable rhui-REGION-rhel-server-optional \n",
+                                "yum -y install vim wget ed xorg-x11-xauth.x86_64 xorg-x11-server-utils.x86_64 dbus-x11.x86_64 libXrender libXtst libstdc++.so.5 mlocate nfs-utils libnfsidmap \n",
+                                "wget -O /tmp/lustreclient.tar https://s3.amazonaws.com/aws-quick-start-sas-grid/lustreclient.tar \n",
+                                "systemctl enable rpcbind && systemctl start rpcbind \n",
+                                "tar -xvf /tmp/lustreclient.tar -C /tmp/ && cd /tmp/lustreclient/ && yum -y localinstall *.rpm \n",
+                                "sed -i.bak s/SELINUX=enforcing/SELINUX=disabled/g /etc/selinux/config \n",
+                                "useradd -u 501 sasinst && useradd -u 502 lsfadmin \n",
+                                "echo '",
+                                {
+                                    "Ref": "EFSFileSystem"
+                                },
+                                ".efs.",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ".amazonaws.com:/ /efs_mount nfs nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0' >> /etc/fstab \n",
+                                "until mount /efs_mount \n",
+                                "do \n",
+                                "echo 'Sleeping for 10 seconds' \n",
+                                "sleep 10 \n",
+                                "done \n",
+                                "TOTALNODES=$((",
+                                {
+                                    "Ref": "NumberOfOSSNodes"
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMGTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMDTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMetadataInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMidtierInstances"
+                                    ]
+                                },
+                                ")) \n",
+                                "SASGridMetadataNodes=",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMetadataInstances"
+                                    ]
+                                },
+                                "\n",
+                                "mkdir /efs_mount/SASGridMetadataNodes \n",
+                                "IP=`ifconfig eth0 | grep 'inet ' | cut -d: -f2 | awk '{print $2}'` && touch /efs_mount/SASGridMetadataNodes/$IP \n",
+                                "NoOfNodes=`ls /efs_mount/SASGridMetadataNodes | wc -l` \n",
+                                "until [ $NoOfNodes -eq $SASGridMetadataNodes ] \n",
+                                "do \n",
+                                "echo 'No of IPs are not equal to no of sas grid instances' \n",
+                                "NoOfNodes=`ls /efs_mount/SASGridMetadataNodes | wc -l` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "NodeNumber=`ls /efs_mount/SASGridMetadataNodes | nl > /tmp/temp && cat /tmp/temp | grep $IP | cut -f1 | sed -r 's/ //g'` \n",
+                                "DOMAIN=",
+                                {
+                                    "Ref": "DomainDNSName"
+                                },
+                                "\n",
+                                "echo 'sasgridmeta'$NodeNumber'-quickstart.'$DOMAIN'' > /etc/hostname && echo ''$IP'   sasgridmeta'$NodeNumber'-quickstart.'$DOMAIN' sasgridmeta'$NodeNumber'-quickstart' >> /efs_mount/hostsfile \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "until [ $HOSTFILEENTRY -eq $TOTALNODES ] \n",
+                                "do \n",
+                                "echo 'No of hostfile entries are not equal to no of Total nodes' \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "cat /efs_mount/hostsfile >> /etc/hosts \n",
+                                "mkdir -p /etc/local/runonce.d \n",
+                                "(echo '@reboot /usr/local/bin/lustre_mount') | crontab - \n",
+                                "echo '#!/bin/sh' > /usr/local/bin/lustre_mount \n",
+                                "echo 'for file in /etc/local/runonce.d/*' >> /usr/local/bin/lustre_mount \n",
+                                "echo 'do' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   if [ ! -f `$file` ]' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   then' >> /usr/local/bin/lustre_mount \n",
+                                "echo '        continue' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   fi' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   `$file`' >> /usr/local/bin/lustre_mount \n",
+                                "echo 'done' >> /usr/local/bin/lustre_mount \n",
+                                "chmod +x /usr/local/bin/lustre_mount \n",
+                                "echo '#!/bin/bash' > /etc/local/runonce.d/lustre_mount.sh \n",
+                                "echo 'mount -t lustre mgtnode1-quickstart@tcp:/lustre -o flock /sas' >> /etc/local/runonce.d/lustre_mount.sh \n",
+                                "chmod +x /etc/local/runonce.d/lustre_mount.sh \n",
+                                "echo 'BootStrap completed successfully' \n",
+                                "until [ -f /efs_mount/reboot.txt ] \n",
+                                "do \n",
+                                "echo 'Waiting for Lustre MGT Node to restart' \n",
+                                "sleep 10 \n",
+                                "done \n",
+                                "echo 'Server will now reboot' \n",
+                                "updatedb && reboot \n"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "SASGridSG"
+            ]
+        },
+        "LambdaExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                ],
+                "Policies": [
+                    {
+                        "PolicyName": "EC2Policy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ec2:RunInstances",
+                                        "ec2:DescribeInstances",
+                                        "ec2:DescribeInstanceStatus",
+                                        "ec2:TerminateInstances"
+                                    ],
+                                    "Resource": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "Metadata": {
+            }
+        },
+        "EC2InstancesFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Handler": "index.handler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaExecutionRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "ZipFile": {
+                        "Fn::Sub": "var response = require('cfn-response');\nvar AWS = require('aws-sdk');\nexports.handler = function(event, context) {\n  var physicalId = event.PhysicalResourceId || 'none';\n  function success(data) {\n    return response.send(event, context, response.SUCCESS, data, physicalId);\n  }\n  function failed(e) {\n    return response.send(event, context, response.FAILED, e, physicalId);\n  }\n  var ec2 = new AWS.EC2();\n  var instances;\n  if (event.RequestType == 'Create') {\n    var launchParams = event.ResourceProperties;\n    delete launchParams.ServiceToken;\n    ec2.runInstances(launchParams).promise().then((data)=> {\n      instances = data.Instances.map((data)=> data.InstanceId);\n      physicalId = instances.join(':');\n      return ec2.waitFor('instanceRunning', {InstanceIds: instances}).promise();\n    }).then((data)=> success({Instances: instances})\n    ).catch((e)=> failed(e));\n  } else if (event.RequestType == 'Delete') {\n    if (physicalId == 'none') {return success({});}\n    var deleteParams = {InstanceIds: physicalId.split(':')};\n    ec2.terminateInstances(deleteParams).promise().then((data)=>\n      ec2.waitFor('instanceTerminated', deleteParams).promise()\n    ).then((data)=>success({})\n    ).catch((e)=>failed(e));\n  } else {\n    return failed({Error: \"In-place updates not supported.\"});\n  }\n};\n"
+                    }
+                },
+                "Runtime": "nodejs4.3",
+                "Timeout": 300
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "LambdaExecutionRole",
+                "SASGridSG",
+                "SASGridMetadata"
+            ]
+        },
+        "SASGridEC2Instances": {
+            "Type": "Custom::EC2Instances",
+            "Properties": {
+                "ServiceToken": {
+                    "Fn::GetAtt": [
+                        "EC2InstancesFunction",
+                        "Arn"
+                    ]
+                },
+                "MinCount": {
+                    "Fn::FindInMap": [
+                        "InfraSizeMap",
+                        {
+                            "Ref": "SASGridInfraSize"
+                        },
+                        "NoOfSASGridInstances"
+                    ]
+                },
+                "MaxCount": {
+                    "Fn::FindInMap": [
+                        "InfraSizeMap",
+                        {
+                            "Ref": "SASGridInfraSize"
+                        },
+                        "NoOfSASGridInstances"
+                    ]
+                },
+                "SubnetId": {
+                    "Ref": "PrivateSubnet1ID"
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "SASGridSG"
+                    }
+                ],
+                "InstanceType": {
+                    "Fn::FindInMap": [
+                        "InfraSizeMap",
+                        {
+                            "Ref": "SASGridInfraSize"
+                        },
+                        "SASGridInstanceType"
+                    ]
+                },
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "AWSAMIRegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "REDHAT"
+                    ]
+                },
+                "KeyName": {
+                    "Ref": "SASGridKeyPairName"
+                },
+                "Placement": {
+                    "GroupName": {
+                        "Ref": "SASGridLustePlacementGroup"
+                    }
+                },
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": "50"
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/sdb",
+                        "VirtualName": "ephemeral0"
+                    },
+                    {
+                        "DeviceName": "/dev/sdc",
+                        "VirtualName": "ephemeral1"
+                    },
+                    {
+                        "DeviceName": "/dev/sdd",
+                        "VirtualName": "ephemeral2"
+                    },
+                    {
+                        "DeviceName": "/dev/sde",
+                        "VirtualName": "ephemeral3"
+                    },
+                    {
+                        "DeviceName": "/dev/sdf",
+                        "VirtualName": "ephemeral4"
+                    },
+                    {
+                        "DeviceName": "/dev/sdg",
+                        "VirtualName": "ephemeral5"
+                    },
+                    {
+                        "DeviceName": "/dev/sdh",
+                        "VirtualName": "ephemeral6"
+                    },
+                    {
+                        "DeviceName": "/dev/sdi",
+                        "VirtualName": "ephemeral7"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash \n",
+                                "set -x\n",
+                                "\n",
+                                "trap read debug\n",
+                                "\n",
+                                "exec 1>/tmp/bootstrap.log 2>&1\n",
+                                "\n",
+                                "/sbin/resize2fs /dev/xvda1\n",
+                                "sed -i.bak s/PasswordAuthentication' 'no/PasswordAuthentication' 'yes/g /etc/ssh/sshd_config \n",
+                                "mkdir /sas /saswork /efs_mount \n",
+                                "yum -y update \n",
+                                "yum-config-manager --enable rhui-REGION-rhel-server-optional \n",
+                                "yum -y install vim mdadm wget ed xorg-x11-xauth.x86_64 xorg-x11-server-utils.x86_64 dbus-x11.x86_64 libXrender libXtst libstdc++.so.5 mlocate nfs-utils libnfsidmap \n",
+                                "echo 'DEVICE /dev/xvd[b-i]' > /etc/mdadm.conf \n",
+                                "echo 'ARRAY /dev/md0 devices=/dev/xvd[b-i]' >> /etc/mdadm.conf \n",
+                                "mdadm -C /dev/md0 --level=raid0 --raid-devices=8 /dev/xvd[b-i] \n",
+                                "mkfs.xfs /dev/md0 \n",
+                                "UUID=`blkid | grep md0 | cut -d' ' -f2` && echo ''$UUID' /saswork xfs defaults 0 0' >> /etc/fstab \n",
+                                "mount /saswork \n",
+                                "wget -O /tmp/lustreclient.tar https://s3.amazonaws.com/aws-quick-start-sas-grid/lustreclient.tar \n",
+                                "systemctl enable rpcbind && systemctl start rpcbind \n",
+                                "tar -xvf /tmp/lustreclient.tar -C /tmp/ && cd /tmp/lustreclient/ && yum -y localinstall *.rpm \n",
+                                "sed -i.bak s/SELINUX=enforcing/SELINUX=disabled/g /etc/selinux/config \n",
+                                "useradd -u 501 sasinst && useradd -u 502 lsfadmin \n",
+                                "echo '",
+                                {
+                                    "Ref": "EFSFileSystem"
+                                },
+                                ".efs.",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ".amazonaws.com:/ /efs_mount nfs nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0' >> /etc/fstab \n",
+                                "until mount /efs_mount \n",
+                                "do \n",
+                                "echo 'Sleeping for 10 seconds' \n",
+                                "sleep 10 \n",
+                                "done \n",
+                                "TOTALNODES=$((",
+                                {
+                                    "Ref": "NumberOfOSSNodes"
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMGTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfLustreMDTInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMetadataInstances"
+                                    ]
+                                },
+                                " + ",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridMidtierInstances"
+                                    ]
+                                },
+                                ")) \n",
+                                "SASGridNodes=",
+                                {
+                                    "Fn::FindInMap": [
+                                        "InfraSizeMap",
+                                        {
+                                            "Ref": "SASGridInfraSize"
+                                        },
+                                        "NoOfSASGridInstances"
+                                    ]
+                                },
+                                "\n",
+                                "mkdir /efs_mount/SASGridNodes \n",
+                                "IP=`ifconfig eth0 | grep 'inet ' | cut -d: -f2 | awk '{print $2}'` && touch /efs_mount/SASGridNodes/$IP \n",
+                                "NoOfNodes=`ls /efs_mount/SASGridNodes | wc -l` \n",
+                                "until [ $NoOfNodes -eq $SASGridNodes ] \n",
+                                "do \n",
+                                "echo 'No of IPs are not equal to no of sas grid instances' \n",
+                                "NoOfNodes=`ls /efs_mount/SASGridNodes | wc -l` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "NodeNumber=`ls /efs_mount/SASGridNodes | nl > /tmp/temp && cat /tmp/temp | grep $IP | cut -f1 | sed -r 's/ //g'` \n",
+                                "DOMAIN=",
+                                {
+                                    "Ref": "DomainDNSName"
+                                },
+                                "\n",
+                                "echo 'sasgrid'$NodeNumber'-quickstart.'$DOMAIN'' > /etc/hostname && echo ''$IP'   sasgrid'$NodeNumber'-quickstart.'$DOMAIN' sasgrid'$NodeNumber'-quickstart' >> /efs_mount/hostsfile \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "until [ $HOSTFILEENTRY -eq $TOTALNODES ] \n",
+                                "do \n",
+                                "echo 'No of hostfile entries are not equal to no of Total nodes' \n",
+                                "HOSTFILEENTRY=`cat /efs_mount/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
+                                "sleep 5 \n",
+                                "done \n",
+                                "cat /efs_mount/hostsfile >> /etc/hosts \n",
+                                "mkdir -p /etc/local/runonce.d \n",
+                                "(echo '@reboot /usr/local/bin/lustre_mount') | crontab - \n",
+                                "echo '#!/bin/sh' > /usr/local/bin/lustre_mount \n",
+                                "echo 'for file in /etc/local/runonce.d/*' >> /usr/local/bin/lustre_mount \n",
+                                "echo 'do' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   if [ ! -f `$file` ]' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   then' >> /usr/local/bin/lustre_mount \n",
+                                "echo '        continue' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   fi' >> /usr/local/bin/lustre_mount \n",
+                                "echo '   `$file`' >> /usr/local/bin/lustre_mount \n",
+                                "echo 'done' >> /usr/local/bin/lustre_mount \n",
+                                "chmod +x /usr/local/bin/lustre_mount \n",
+                                "echo '#!/bin/bash' > /etc/local/runonce.d/lustre_mount.sh \n",
+                                "echo 'mount -t lustre mgtnode1-quickstart@tcp:/lustre -o flock /sas' >> /etc/local/runonce.d/lustre_mount.sh \n",
+                                "chmod +x /etc/local/runonce.d/lustre_mount.sh \n",
+                                "echo 'BootStrap completed successfully' \n",
+                                "until [ -f /efs_mount/reboot.txt ] \n",
+                                "do \n",
+                                "echo 'Waiting for Lustre MGT Node to restart' \n",
+                                "sleep 10 \n",
+                                "done \n",
+                                "echo 'Server will now reboot' \n",
+                                "updatedb && reboot \n"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "EC2InstancesFunction",
+                "SASGridSG",
+                "SASGridMetadata"
+            ]
+        },
+        "SASMidTierRecovery": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": "Trigger a recovery when instance status check fails for 15 consecutive minutes.",
+                "Namespace": "AWS/EC2",
+                "MetricName": "StatusCheckFailed_System",
+                "Statistic": "Minimum",
+                "Period": "60",
+                "EvaluationPeriods": "15",
+                "ComparisonOperator": "GreaterThanThreshold",
+                "Threshold": "0",
+                "AlarmActions": [
+                    {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:automate:",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ":ec2:recover"
+                            ]
+                        ]
+                    }
+                ],
+                "Dimensions": [
+                    {
+                        "Name": "InstanceId",
+                        "Value": {
+                            "Ref": "SASGridMidTier"
+                        }
+                    }
+                ]
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "SASGridMidTier"
+            ]
+        },
+        "SASMetadataRecovery": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": "Trigger a recovery when instance status check fails for 15 consecutive minutes.",
+                "Namespace": "AWS/EC2",
+                "MetricName": "StatusCheckFailed_System",
+                "Statistic": "Minimum",
+                "Period": "60",
+                "EvaluationPeriods": "15",
+                "ComparisonOperator": "GreaterThanThreshold",
+                "Threshold": "0",
+                "AlarmActions": [
+                    {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:automate:",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ":ec2:recover"
+                            ]
+                        ]
+                    }
+                ],
+                "Dimensions": [
+                    {
+                        "Name": "InstanceId",
+                        "Value": {
+                            "Ref": "SASGridMetadata"
+                        }
+                    }
+                ]
+            },
+            "Metadata": {
+            },
+            "DependsOn": [
+                "SASGridMetadata"
+            ]
+        }
+    },
+    "Outputs": {
+        "SASGridLustePlacementGroup": {
+            "Description": "Private subnet 1A ID in Availability Zone 1",
+            "Value": {
+                "Ref": "SASGridLustePlacementGroup"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-SASGridLustePlacementGroup"
+                }
+            }
+        },
+        "SASGridSGID": {
+            "Description": "Security Group ID of SASGrid Instances",
+            "Value": {
+                "Ref": "SASGridSG"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-SASGridSG"
+                }
+            }
+        },
+        "EFSFileSystemID": {
+            "Description": "Security Group ID of SASGrid Instances",
+            "Value": {
+                "Ref": "EFSFileSystem"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-EFSFileSystem"
+                }
+            }
+        }
+    }
+}
