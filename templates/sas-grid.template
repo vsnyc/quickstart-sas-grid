@@ -270,7 +270,7 @@
             "Properties": {
 				"TemplateURL": {
                     "Fn::Sub": [
-                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-sas-grid/templates/sasnodes.template",
+                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-sas-grid/templates/sas-nodes.template",
                         {
                             "QSS3Region": {
                                 "Fn::If": [
