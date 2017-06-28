@@ -68,7 +68,7 @@
                     "default": "Admin Password"
                 },
                 "AdminUser": {
-                    "default": "Admin User Name"
+                    "default": "Admin UserName"
                 },
                 "DomainDNSName": {
                     "default": "Domain DNS Name"
