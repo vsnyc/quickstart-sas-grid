@@ -340,7 +340,7 @@
                 "Tags": [
                     {
                         "Key": "Name",
-                        "Value": "Lustre MGS Node"
+                        "Value": "Lustre MGT Node"
                     },
                     {
                         "Key": "Created By",
@@ -599,7 +599,7 @@
                 "Tags": [
                     {
                         "Key": "Name",
-                        "Value": "Lustre MDS Node"
+                        "Value": "Lustre MDT Node"
                     },
                     {
                         "Key": "Created By",
@@ -1541,7 +1541,7 @@
                                 "done \n",
                                 "cat /efs_mount/hostsfile >> /etc/hosts \n",
                                 "echo 'mkfs.lustre --fsname lustre --reformat --ost --mgsnode=mgtnode1-quickstart@tcp --index='$NodeNumber' /dev/md0' > /tmp/temp.sh && chmod +x /tmp/temp.sh && /bin/bash /tmp/temp.sh \n",
-                                "UUID=`blkid | grep md0 | cut -d' ' -f2` && echo ''$UUID' /lsf_data lustre defaults,_netdev 0 0' >> /etc/fstab \n",
+                                "UUID=`blkid | grep md0 | cut -d' ' -f3` && echo ''$UUID' /lsf_data lustre defaults,_netdev 0 0' >> /etc/fstab \n",
                                 "echo 'BootStrap completed successfully' \n",
                                 "until [ -f /efs_mount/reboot.txt ] \n",
                                 "do \n",
