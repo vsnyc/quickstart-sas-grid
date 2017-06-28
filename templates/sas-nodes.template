@@ -119,6 +119,11 @@
                 "LUSTREAMI": "ami-c91df4df",
                 "WINDOWS": "ami-11e84107"
             },
+			"us-east-2": {
+                "REDHAT": "ami-11aa8c74",
+                "LUSTREAMI": "ami-c91df4df",
+                "WINDOWS": "ami-11e84107"
+            },
             "us-west-1": {
                 "REDHAT": "ami-2cade64c",
                 "LUSTREAMI": "ami-97e4b7f7",
