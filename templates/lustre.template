@@ -152,37 +152,37 @@
                 "LUSTREAMI": "Lustre MarketPlace"
             },
             "us-east-1": {
-                "LUSTREAMI": "ami-c91df4df"
+                "LUSTREAMI": "ami-f384d1e5"
             },
             "us-west-1": {
-                "LUSTREAMI": "ami-97e4b7f7"
+                "LUSTREAMI": "ami-7f07241f"
             },
             "us-west-2": {
-                "LUSTREAMI": "ami-ae55e9ce"
+                "LUSTREAMI": "ami-979ef3f7"
             },
             "eu-west-1": {
-                "LUSTREAMI": "ami-85ecd8f6"
+                "LUSTREAMI": "ami-1a54447c"
             },
             "eu-central-1": {
-                "LUSTREAMI": "ami-b68e41d9"
+                "LUSTREAMI": "ami-f7f02a98"
             },
             "ap-southeast-1": {
-                "LUSTREAMI": "ami-36fb5155"
+                "LUSTREAMI": "ami-cc33b2af"
             },
             "ap-southeast-2": {
-                "LUSTREAMI": "ami-06e1e565"
+                "LUSTREAMI": "ami-10d0c773"
             },
             "ap-northeast-2": {
-                "LUSTREAMI": "ami-67a57409"
+                "LUSTREAMI": "ami-b0f32fde"
             },
             "ap-northeast-1": {
-                "LUSTREAMI": "ami-7a512f1d"
+                "LUSTREAMI": "ami-e8f2f38f"
             },
             "ap-south-1": {
-                "LUSTREAMI": "ami-dbf88eb4"
+                "LUSTREAMI": "ami-65a6da0a"
             },
             "sa-east-1": {
-                "LUSTREAMI": "ami-1d24be71"
+                "LUSTREAMI": "ami-96b5dcfa"
             }
         },
         "InfraSizeMap": {
@@ -219,6 +219,92 @@
         }
     },
     "Resources": {
+        "LambdaExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                ],
+                "Policies": [
+                    {
+                        "PolicyName": "EC2Policy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ec2:RunInstances",
+                                        "ec2:DescribeInstances",
+                                        "ec2:DescribeInstanceStatus",
+                                        "ec2:TerminateInstances"
+                                    ],
+                                    "Resource": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "Metadata": {
+            }
+        },
+        "DivideFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Handler": "index.handler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaExecutionRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "ZipFile": {
+                        "Fn::Sub": "var response = require('cfn-response');\nexports.handler = function(event, context) {\n  var result = parseInt(event.ResourceProperties.Op1) / parseInt(event.ResourceProperties.Op2);\n  response.send(event, context, response.SUCCESS, {Value: result});\n};\n"
+                    }
+                },
+                "Runtime": "nodejs4.3"
+            },
+            "Metadata": {
+            }
+        },
+        "DivideEBSVolumeSize": {
+            "Type": "Custom::Add",
+            "Properties": {
+                "ServiceToken": {
+                    "Fn::GetAtt": [
+                        "DivideFunction",
+                        "Arn"
+                    ]
+                },
+                "Op1": {
+                    "Ref": "LustreOSSEBSVolumeSize"
+                },
+                "Op2": "20"
+            },
+            "Metadata": {
+            }
+        },
         "MGTNode": {
             "Type": "AWS::EC2::Instance",
             "Properties": {
@@ -947,8 +1033,7 @@
                     "Ref": "LustreOSSSG"
                 }
             },
-            "Metadata": {
-            }
+            "Metadata": {}
         },
         "OSSAllowRDGWSG": {
             "Type": "AWS::EC2::SecurityGroupIngress",
@@ -1008,55 +1093,6 @@
                 "SourceSecurityGroupId": {
                     "Ref": "LustreMGTSG"
                 }
-            }
-        },
-        "LambdaExecutionRole": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-                "AssumeRolePolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": [
-                                    "lambda.amazonaws.com"
-                                ]
-                            },
-                            "Action": [
-                                "sts:AssumeRole"
-                            ]
-                        }
-                    ]
-                },
-                "Path": "/",
-                "ManagedPolicyArns": [
-                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-                ],
-                "Policies": [
-                    {
-                        "PolicyName": "EC2Policy",
-                        "PolicyDocument": {
-                            "Version": "2012-10-17",
-                            "Statement": [
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "ec2:RunInstances",
-                                        "ec2:DescribeInstances",
-                                        "ec2:DescribeInstanceStatus",
-                                        "ec2:TerminateInstances"
-                                    ],
-                                    "Resource": [
-                                        "*"
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                ]
-            },
-            "Metadata": {
             }
         },
         "EC2InstancesFunction": {
@@ -1143,11 +1179,242 @@
                         }
                     },
                     {
-                        "DeviceName": "/dev/xvdf",
+                        "DeviceName": "/dev/xvdba",
                         "Ebs": {
                             "VolumeType": "gp2",
                             "VolumeSize": {
-                                "Ref": "LustreOSSEBSVolumeSize"
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbb",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbc",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbd",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbe",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbf",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbg",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbh",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbi",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbj",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbk",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbl",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbm",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbn",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbo",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbp",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbq",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbr",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbs",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdbt",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": {
+                                "Fn::GetAtt": [
+                                    "DivideEBSVolumeSize",
+                                    "Value"
+                                ]
                             }
                         }
                     }
@@ -1169,8 +1436,11 @@
                                 "systemctl disable firewalld \n",
                                 "service firewalld stop",
                                 "useradd -u 502 lsfadmin \n",
-                                "yum -y install vim wget mlocate nfs-utils libnfsidmap \n",
+                                "yum -y mdadm install vim wget mlocate nfs-utils libnfsidmap \n",
                                 "systemctl enable rpcbind && systemctl start rpcbind \n",
+                                "echo 'DEVICE /dev/xvdb[a-t]' > /etc/mdadm.conf \n",
+                                "echo 'ARRAY /dev/md0 devices=/dev/xvdb[a-t]' >> /etc/mdadm.conf \n",
+                                "mdadm -C /dev/md0 --level=raid0 --raid-devices=20 /dev/xvdb[a-t] \n",
                                 "mkdir /efs_mount /lsf_data \n",
                                 "echo '",
                                 {
@@ -1270,8 +1540,8 @@
                                 "sleep 5 \n",
                                 "done \n",
                                 "cat /efs_mount/hostsfile >> /etc/hosts \n",
-                                "echo 'mkfs.lustre --fsname lustre --reformat --ost --mgsnode=mgtnode1-quickstart@tcp --index='$NodeNumber' /dev/xvdf' > /tmp/temp.sh && chmod +x /tmp/temp.sh && /bin/bash /tmp/temp.sh \n",
-                                "UUID=`blkid | grep xvdf | sed 's/.*UUID=//' | cut -d' ' -f1` && echo 'UUID='$UUID'   /lsf_data lustre defaults,_netdev 0 0' >> /etc/fstab \n",
+                                "echo 'mkfs.lustre --fsname lustre --reformat --ost --mgsnode=mgtnode1-quickstart@tcp --index='$NodeNumber' /dev/md0' > /tmp/temp.sh && chmod +x /tmp/temp.sh && /bin/bash /tmp/temp.sh \n",
+                                "UUID=`blkid | grep md0 | cut -d' ' -f2` && echo ''$UUID' /lsf_data lustre defaults,_netdev 0 0' >> /etc/fstab \n",
                                 "echo 'BootStrap completed successfully' \n",
                                 "until [ -f /efs_mount/reboot.txt ] \n",
                                 "do \n",
@@ -1290,7 +1560,8 @@
             "DependsOn": [
                 "EC2InstancesFunction",
                 "LustreOSSSG",
-                "MGTNode"
+                "MGTNode",
+                "DivideEBSVolumeSize"
             ]
         },
         "LustreOSSRecovery": {
