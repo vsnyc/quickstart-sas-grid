@@ -1,0 +1,46 @@
+[
+    {
+    "ParameterKey": "RDGWKeyPairName",
+    "ParameterValue": "$[sasgrid_getkeypair]"
+    },
+    {
+    "ParameterKey": "SASGridKeyPairName",
+    "ParameterValue": "$[sasgrid_getkeypair]"
+    },
+    {
+    "ParameterKey": "LustreKeyPairName",
+    "ParameterValue": "$[sasgrid_getkeypair]"
+    },
+    {
+    "ParameterKey": "SASGridInfraSize",
+    "ParameterValue": "Small"
+    },
+	{
+    "ParameterKey": "AdminUser",
+    "ParameterValue": "testadmin"
+    },
+    {
+    "ParameterKey": "AdminPassword",
+    "ParameterValue": "$[taskcat_genpass_8A]"
+    },
+    {
+    "ParameterKey": "DomainDNSName",
+    "ParameterValue": "example.com"
+    },
+    {
+    "ParameterKey": "RDGWCIDR",
+    "ParameterValue": "0.0.0.0/0"
+    },
+    {
+    "ParameterKey": "LustreOSSEBSVolumeSize",
+    "ParameterValue": "100"
+    },
+    {
+    "ParameterKey": "NumberOfOSSNodes",
+    "ParameterValue": "3"
+    },
+    {
+    "ParameterKey": "AvailabilityZones",
+    "ParameterValue": "$[taskcat_genaz_2]"
+    }
+]
