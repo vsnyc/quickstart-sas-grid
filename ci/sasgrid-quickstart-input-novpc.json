@@ -1,0 +1,38 @@
+[
+    {
+    "ParameterKey": "VPCID",
+    "ParameterValue": "vpc-9749adf2"
+    },
+    {
+    "ParameterKey": "PrivateSubnet1ID",
+    "ParameterValue": "subnet-80e3f4f6"
+    },
+    {
+    "ParameterKey": "PrivateSubnet2ID",
+    "ParameterValue": "subnet-bea3d582"
+    },
+	{
+	"ParameterKey": "SASGridKeyPairName",
+	"ParameterValue": "$[sasgrid_getkeypair]"
+	},
+	{
+	"ParameterKey": "LustreKeyPairName",
+	"ParameterValue": "$[sasgrid_getkeypair]"
+	},
+	{
+	"ParameterKey": "SASGridInfraSize",
+	"ParameterValue": "Small"
+	},
+	{
+	"ParameterKey": "DomainDNSName",
+	"ParameterValue": "example.com"
+	},
+	{
+	"ParameterKey": "LustreOSSEBSVolumeSize",
+	"ParameterValue": "100"
+	},
+	{
+	"ParameterKey": "NumberOfOSSNodes",
+	"ParameterValue": "3"
+	}
+]
