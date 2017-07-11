@@ -1,21 +1,21 @@
 [
     {
     "ParameterKey": "RDGWKeyPairName",
-    "ParameterValue": "$[sasgrid_getkeypair]"
+    "ParameterValue": "$[alfred_getkeypair]"
     },
     {
     "ParameterKey": "SASGridKeyPairName",
-    "ParameterValue": "$[sasgrid_getkeypair]"
+    "ParameterValue": "$[alfred_getkeypair]"
     },
     {
     "ParameterKey": "LustreKeyPairName",
-    "ParameterValue": "$[sasgrid_getkeypair]"
+    "ParameterValue": "$[alfred_getkeypair]"
     },
     {
     "ParameterKey": "SASGridInfraSize",
     "ParameterValue": "Small"
     },
-	{
+    {
     "ParameterKey": "AdminUser",
     "ParameterValue": "testadmin"
     },
