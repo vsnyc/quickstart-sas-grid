@@ -67,7 +67,7 @@
                     "default": "Admin Password"
                 },
                 "AdminUser": {
-                    "default": "Admin UserName"
+                    "default": "Admin User Name"
                 },
                 "DomainDNSName": {
                     "default": "Domain DNS Name"
@@ -109,10 +109,10 @@
                     "default": "Quick Start S3 Key Prefix"
                 },
                 "RDGWInstanceType": {
-                    "default": "Remote Desktop Gateway Instance Type"
+                    "default": "RDGW Instance Type"
                 },
                 "RDGWCIDR": {
-                    "default": "Allowed Remote Desktop Gateway External Access CIDR"
+                    "default": "Allowed RDGW External Access CIDR"
                 },
                 "VPCCIDR": {
                     "default": "VPC CIDR"
@@ -160,7 +160,7 @@
         "SASGridInfraSize": {
             "Description": "Select the type of SASGrid Infrastructure is required. Small-2, Medium-4 and Large-6 SASGrid instances will be launched",
             "Type": "String",
-            "Default": "Small",
+            "Default": "Medium",
             "AllowedValues": [
                 "Small",
                 "Medium",
@@ -172,11 +172,11 @@
             "Type": "AWS::EC2::KeyPair::KeyName"
         },
         "LustreOSSEBSVolumeSize": {
-            "Description": "Provide size(in GB) for Lustre Data Volume of OSS Nodes",
+            "Description": "EBS volume size (in GiB) for Lustre OSS nodes. You can specify 100-9900 GiB. Provide size (in GiB) for Lustre OSS Data Volume in multiples of 100. Volume size for each OSS node will be assigned based on the input provided here",
             "Type": "String",
-            "MinLength": "1",
+            "MinLength": "3",
             "MaxLength": "4",
-            "Default": "10"
+            "Default": "100"
         },
         "NumberOfOSSNodes": {
             "Description": "Provide the number of Lustre OSS Node instances are required",
