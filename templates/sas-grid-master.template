@@ -24,7 +24,6 @@
                     "Parameters": [
                         "RDGWKeyPairName",
                         "RDGWInstanceType",
-                        "NumberOfRDGWHosts",
                         "AdminUser",
                         "AdminPassword",
                         "DomainDNSName",
@@ -90,9 +89,6 @@
                 },
                 "NumberOfOSSNodes": {
                     "default": "Number of OSS Nodes"
-                },
-                "NumberOfRDGWHosts": {
-                    "default": "Number of RDGW Hosts"
                 },
                 "PrivateSubnet1CIDR": {
                     "default": "SASGrid Subnet CIDR"
@@ -273,7 +269,7 @@
             "Properties": {
                 "TemplateURL": {
                     "Fn::Sub": [
-                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/aws-vpc.template",
+                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template",
                         {
                             "QSS3Region": {
                                 "Fn::If": [
@@ -297,12 +293,6 @@
                     "NumberOfAZs": "2",
                     "KeyPairName": {
                         "Ref": "RDGWKeyPairName"
-                    },
-					"QSS3BucketName": {
-                        "Ref": "QSS3BucketName"
-                    },
-                    "QSS3KeyPrefix": {
-                        "Fn::Sub": "${QSS3KeyPrefix}submodules/quickstart-aws-vpc/"
                     },
                     "PrivateSubnet1ACIDR": {
                         "Ref": "PrivateSubnet1CIDR"
@@ -333,7 +323,7 @@
             "Properties": {
                 "TemplateURL": {
                     "Fn::Sub": [
-                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/rdgw-standalone.template",
+                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-microsoft-rdgateway/templates/rdgw-standalone.template",
                         {
                             "QSS3Region": {
                                 "Fn::If": [
