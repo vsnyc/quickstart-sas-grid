@@ -113,11 +113,11 @@
             "MaxLength": "400"
         },
         "LustreOSSEBSVolumeSize": {
-            "Description": "Provide size(in GB) of SASData Volume for SASGrid Instances",
+            "Description": "Provide size(in GB) for Lustre OSS Data Volume. Each OSS node will be assigned with the volume size given here. Please note: Input has to be multiples of 100",
             "Type": "String",
-            "MinLength": "1",
+            "MinLength": "3",
             "MaxLength": "4",
-            "Default": "10"
+            "Default": "100"
         },
         "VPCID": {
             "Description": "Select the ID of an existing VPC",
