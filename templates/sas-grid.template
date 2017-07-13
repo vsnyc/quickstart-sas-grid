@@ -14,6 +14,15 @@
                         "PrivateSubnet2ID"
                     ]
                 },
+				{
+                    "Label": {
+                        "default": "Microsoft Remote Desktop Gateway Configuration"
+                    },
+                    "Parameters": [
+                        "DomainDNSName",
+                        "RDGWSG"
+                    ]
+                },
                 {
                     "Label": {
                         "default": "SASGrid EC2 Configuration"
@@ -47,11 +56,14 @@
                 "DomainDNSName": {
                     "default": "Domain DNS Name"
                 },
+				"RDGWSG": {
+					"default": "RDGW SG"
+				},
                 "SASGridKeyPairName": {
                     "default": "SASGrid KeyPair Name"
                 },
                 "SASGridInfraSize": {
-                    "default": "SASGridInfraSize"
+                    "default": "SASGrid Infra Size"
                 },
                 "LustreKeyPairName": {
                     "default": "Lustre KeyPair Name"
@@ -89,8 +101,9 @@
             "Type": "AWS::EC2::KeyPair::KeyName"
         },
         "SASGridInfraSize": {
+			"Description": "Select the type of SASGrid Infrastructure is required. Small-2, Medium-4 and Large-6 SASGrid instances will be launched",
             "Type": "String",
-            "Default": "Small",
+            "Default": "Medium",
             "AllowedValues": [
                 "Small",
                 "Medium",
@@ -102,11 +115,11 @@
             "Type": "AWS::EC2::KeyPair::KeyName"
         },
         "LustreOSSEBSVolumeSize": {
-            "Description": "Provide size(in GB) of SASData Volume for SASGrid Instances",
+            "Description": "EBS volume size (in GiB) for Lustre OSS nodes. You can specify 100-9900 GiB. Provide size (in GiB) for Lustre OSS Data Volume in multiples of 100. Volume size for each OSS node will be assigned based on the input provided here",
             "Type": "String",
-            "MinLength": "1",
+            "MinLength": "3",
             "MaxLength": "4",
-            "Default": "10"
+            "Default": "100"
         },
         "NumberOfOSSNodes": {
             "Description": "Provide the number of OSS Node instances are required",

@@ -113,11 +113,11 @@
             "MaxLength": "400"
         },
         "LustreOSSEBSVolumeSize": {
-            "Description": "Provide size(in GB) of SASData Volume for SASGrid Instances",
+            "Description": "EBS volume size (in GiB) for Lustre OSS nodes. You can specify 100-9900 GiB. Provide size (in GiB) for Lustre OSS Data Volume in multiples of 100. Volume size for each OSS node will be assigned based on the input provided here",
             "Type": "String",
-            "MinLength": "1",
+            "MinLength": "3",
             "MaxLength": "4",
-            "Default": "10"
+            "Default": "100"
         },
         "VPCID": {
             "Description": "Select the ID of an existing VPC",
