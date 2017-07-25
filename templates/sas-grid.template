@@ -199,12 +199,6 @@
                     "VPCID": {
                         "Ref": "VPCID"
                     },
-					"QSS3BucketName": {
-                        "Ref": "QSS3BucketName"
-                    },
-                    "QSS3KeyPrefix": {
-                        "Ref": "QSS3KeyPrefix"
-                    },
                     "DomainDNSName": {
                         "Ref": "DomainDNSName"
                     },
@@ -266,12 +260,6 @@
                     },
                     "VPCID": {
                         "Ref": "VPCID"
-                    },
-					"QSS3BucketName": {
-                        "Ref": "QSS3BucketName"
-                    },
-                    "QSS3KeyPrefix": {
-                        "Ref": "QSS3KeyPrefix"
                     },
                     "RDGWSG": {
                         "Ref": "RDGWSG"
