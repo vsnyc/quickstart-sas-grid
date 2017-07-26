@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "This template creates a SASGrid infrastructure in a single AZ. It will deploy a EFS Filesystem, Mout Target, Security Group, Placement Group, 2 EC2 instances, 1 AutoScaling Group and Launch Configuration for SASGrid in a private subnet. **WARNING** This template creates Amazon EC2 RHEL instances and dependent resources. You will be billed for the AWS resources used if you create a stack from this template.",
+    "Description": "This template creates a SASGrid infrastructure in a single AZ. It will deploy a EFS Filesystem, Mout Target, Security Group, Placement Group, 2 EC2 instances, 1 AutoScaling Group and Launch Configuration for SASGrid in a private subnet. **WARNING** This template creates Amazon EC2 RHEL instances and dependent resources. You will be billed for the AWS resources used if you create a stack from this template. (qs-1nh8kis2k)",
     "Metadata": {
         "AWS::CloudFormation::Interface": {
             "ParameterGroups": [

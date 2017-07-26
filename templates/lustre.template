@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "This template creates a Lustre infrastructure in a single AZ. It will deploy Security Groups, 2 EC2 instances, 1 AutoScaling Group and Launch Configuration for Lustre in a private subnet. **WARNING** This template creates Amazon EC2 RHEL instances and dependent resources. You will be billed for the AWS resources used if you create a stack from this template.",
+    "Description": "This template creates a Lustre infrastructure in a single AZ. It will deploy Security Groups, 2 EC2 instances, 1 AutoScaling Group and Launch Configuration for Lustre in a private subnet. **WARNING** This template creates Amazon EC2 RHEL instances and dependent resources. You will be billed for the AWS resources used if you create a stack from this template. (qs-1nh8kis2f)",
     "Metadata": {
         "AWS::CloudFormation::Interface": {
             "ParameterGroups": [

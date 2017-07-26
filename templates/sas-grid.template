@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "This template creates a multi-tier deployment of a Linux based Application infrastructure into an existing VPC and subnets. It will deploy a Remote Desktop Gateway and manage NAT gateways into the public subnet for each Availability Zone. It will also create a SASGrid and Lustre infrastructure. **WARNING** This template creates Amazon EC2 Windows instance and related resources. You will be billed for the AWS resources used if you create a stack from this template.",
+    "Description": "This template creates a SAS Grid and Lustre infrastructure into an existing VPC. **WARNING** This template creates Amazon EC2 Windows instance and related resources. You will be billed for the AWS resources used if you create a stack from this template. (qs-1nh8kis2a)",
     "Metadata": {
         "AWS::CloudFormation::Interface": {
             "ParameterGroups": [
@@ -25,7 +25,7 @@
                 },
                 {
                     "Label": {
-                        "default": "SASGrid EC2 Configuration"
+                        "default": "SAS Grid EC2 Configuration"
                     },
                     "Parameters": [
                         "SASGridInfraSize",
@@ -53,6 +53,15 @@
                 }
             ],
             "ParameterLabels": {
+                "VPCID": {
+                    "default": "VPC ID"
+                },
+                "PrivateSubnet1ID": {
+                    "default": "Private Subnet 1 ID"
+                },
+                "PrivateSubnet2ID": {
+                    "default": "Private Subnet 2 ID"
+                },
                 "DomainDNSName": {
                     "default": "Domain DNS Name"
                 },
@@ -60,10 +69,10 @@
 					"default": "RDGW SG"
 				},
                 "SASGridKeyPairName": {
-                    "default": "SASGrid KeyPair Name"
+                    "default": "SAS Grid KeyPair Name"
                 },
                 "SASGridInfraSize": {
-                    "default": "SASGrid Infra Size"
+                    "default": "SAS Grid Infra Size"
                 },
                 "LustreKeyPairName": {
                     "default": "Lustre KeyPair Name"
@@ -101,7 +110,7 @@
             "Type": "AWS::EC2::KeyPair::KeyName"
         },
         "SASGridInfraSize": {
-			"Description": "Select the type of SASGrid Infrastructure is required. Small-2, Medium-4 and Large-6 SASGrid instances will be launched",
+			"Description": "Select the type of SAS Grid Infrastructure is required. Small-2, Medium-4 and Large-6 SAS Grid instances will be launched",
             "Type": "String",
             "Default": "Medium",
             "AllowedValues": [

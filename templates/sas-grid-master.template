@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "This template creates a VPC infrastructure for a multi-AZ, multi-tier deployment of a Windows/Linux based Application infrastructure. It will deploy a Remote Desktop Gateway and manage NAT gateways into the public subnet for each Availability Zone. It will also create a SASGrid and Lustre infrastructure. **WARNING** This template creates Amazon EC2 Windows instance and related resources. You will be billed for the AWS resources used if you create a stack from this template.",
+    "Description": "This template creates a VPC infrastructure for a multi-AZ, multi-tier deployment of a Windows/Linux based Application infrastructure. It will deploy a Remote Desktop Gateway and manage NAT gateways into the public subnet for each Availability Zone. It will also create a SAS Grid and Lustre infrastructure. **WARNING** This template creates Amazon EC2 Windows instance and related resources. You will be billed for the AWS resources used if you create a stack from this template. (qs-1nh8kis25)",
     "Metadata": {
         "AWS::CloudFormation::Interface": {
             "ParameterGroups": [
@@ -32,7 +32,7 @@
                 },
                 {
                     "Label": {
-                        "default": "SASGrid EC2 Configuration"
+                        "default": "SAS Grid EC2 Configuration"
                     },
                     "Parameters": [
                         "SASGridInfraSize",
@@ -76,10 +76,10 @@
                     "default": "RDGW KeyPair Name"
                 },
                 "SASGridKeyPairName": {
-                    "default": "SASGrid KeyPair Name"
+                    "default": "SAS Grid KeyPair Name"
                 },
                 "SASGridInfraSize": {
-                    "default": "SASGrid Infra Size"
+                    "default": "SAS Grid Infra Size"
                 },
                 "LustreKeyPairName": {
                     "default": "Lustre KeyPair Name"
@@ -91,7 +91,7 @@
                     "default": "Number of OSS Nodes"
                 },
                 "PrivateSubnet1CIDR": {
-                    "default": "SASGrid Subnet CIDR"
+                    "default": "SAS Grid Subnet CIDR"
                 },
                 "PrivateSubnet2CIDR": {
                     "default": "Lustre Subnet CIDR"
@@ -138,7 +138,7 @@
             "AllowedPattern": "[a-zA-Z0-9]*"
         },
         "AvailabilityZones": {
-            "Description": "List of Availability Zones to use for the subnets in the VPC. Note: The logical order is preserved and only 1 AZ is used for this deployment.",
+            "Description": "List of Availability Zones to use for the subnets in the VPC. This Quick Start uses a single Availability Zone for SAS Grid deployment and will use the first zone you specify.",
             "Type": "List<AWS::EC2::AvailabilityZone::Name>"
         },
         "DomainDNSName": {
@@ -158,7 +158,7 @@
             "Type": "AWS::EC2::KeyPair::KeyName"
         },
         "SASGridInfraSize": {
-            "Description": "Select the type of SASGrid Infrastructure is required. Small-2, Medium-4 and Large-6 SASGrid instances will be launched",
+            "Description": "Select the type of SAS Grid Infrastructure is required. Small-2, Medium-4 and Large-6 SAS Grid instances will be launched",
             "Type": "String",
             "Default": "Medium",
             "AllowedValues": [
@@ -189,7 +189,7 @@
             "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
             "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
             "Default": "10.0.0.0/19",
-            "Description": "CIDR block for private subnet 1(SASGrid Subnet) located in Availability Zone 1.",
+            "Description": "CIDR block for private subnet 1(SAS Grid Subnet) located in Availability Zone 1.",
             "Type": "String"
         },
         "PrivateSubnet2CIDR": {
