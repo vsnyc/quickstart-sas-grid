@@ -62,9 +62,6 @@
                 "SASGridInfraSize": {
                     "default": "SASGrid Infra Size"
                 },
-                "SASGridLustePlacementGroup": {
-                    "default": "Placement group name of SASGrid and Lustre"
-                },
                 "SASGridSG": {
                     "default": "Security Group ID of SASGrid Instances"
                 },
@@ -104,12 +101,6 @@
             "MinValue": "3",
             "MaxValue": "15",
             "Default": "3"
-        },
-        "SASGridLustePlacementGroup": {
-            "Description": "Enter the Name of Placement Group",
-            "Type": "String",
-            "MinLength": "1",
-            "MaxLength": "400"
         },
         "LustreOSSEBSVolumeSize": {
             "Description": "EBS volume size (in GiB) for Lustre OSS nodes. You can specify 100-9900 GiB. Provide size (in GiB) for Lustre OSS Data Volume in multiples of 100. Volume size for each OSS node will be assigned based on the input provided here",
@@ -346,9 +337,6 @@
                         "Value": "CoreCompete-AWS_Quick_Start"
                     }
                 ],
-                "PlacementGroupName": {
-                    "Ref": "SASGridLustePlacementGroup"
-                },
                 "BlockDeviceMappings": [
                     {
                         "DeviceName": "/dev/sda1",
@@ -605,9 +593,6 @@
                         "Value": "CoreCompete-AWS_Quick_Start"
                     }
                 ],
-                "PlacementGroupName": {
-                    "Ref": "SASGridLustePlacementGroup"
-                },
                 "BlockDeviceMappings": [
                     {
                         "DeviceName": "/dev/sda1",
@@ -1163,11 +1148,6 @@
                 },
                 "KeyName": {
                     "Ref": "LustreKeyPairName"
-                },
-                "Placement": {
-                    "GroupName": {
-                        "Ref": "SASGridLustePlacementGroup"
-                    }
                 },
                 "BlockDeviceMappings": [
                     {
