@@ -142,37 +142,37 @@
                 "LUSTREAMI": "Lustre MarketPlace"
             },
             "us-east-1": {
-                "LUSTREAMI": "ami-f384d1e5"
+                "LUSTREAMI": "ami-e2e8e798"
             },
             "us-west-1": {
-                "LUSTREAMI": "ami-7f07241f"
+                "LUSTREAMI": "ami-659d9205"
             },
             "us-west-2": {
-                "LUSTREAMI": "ami-979ef3f7"
+                "LUSTREAMI": "ami-6e8b0f16"
             },
             "eu-west-1": {
-                "LUSTREAMI": "ami-1a54447c"
+                "LUSTREAMI": "ami-bb721bc2"
             },
             "eu-central-1": {
-                "LUSTREAMI": "ami-f7f02a98"
+                "LUSTREAMI": "ami-922743fd"
             },
             "ap-southeast-1": {
-                "LUSTREAMI": "ami-cc33b2af"
+                "LUSTREAMI": "ami-e9efa995"
             },
             "ap-southeast-2": {
-                "LUSTREAMI": "ami-10d0c773"
+                "LUSTREAMI": "ami-def209bc"
             },
             "ap-northeast-2": {
-                "LUSTREAMI": "ami-b0f32fde"
+                "LUSTREAMI": "ami-24d3714a"
             },
             "ap-northeast-1": {
-                "LUSTREAMI": "ami-e8f2f38f"
+                "LUSTREAMI": "ami-46047320"
             },
             "ap-south-1": {
-                "LUSTREAMI": "ami-65a6da0a"
+                "LUSTREAMI": "ami-ccb2e1a3"
             },
             "sa-east-1": {
-                "LUSTREAMI": "ami-96b5dcfa"
+                "LUSTREAMI": "ami-a70d43cb"
             }
         },
         "InfraSizeMap": {
