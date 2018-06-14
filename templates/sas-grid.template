@@ -14,7 +14,7 @@
                         "PrivateSubnet2ID"
                     ]
                 },
-				{
+                {
                     "Label": {
                         "default": "Microsoft Remote Desktop Gateway Configuration"
                     },
@@ -65,9 +65,9 @@
                 "DomainDNSName": {
                     "default": "Domain DNS Name"
                 },
-				"RDGWSG": {
-					"default": "RDGW SG"
-				},
+                "RDGWSG": {
+                    "default": "RDGW SG"
+                },
                 "SASGridKeyPairName": {
                     "default": "SAS Grid KeyPair Name"
                 },
@@ -110,7 +110,7 @@
             "Type": "AWS::EC2::KeyPair::KeyName"
         },
         "SASGridInfraSize": {
-			"Description": "Select the type of SAS Grid Infrastructure is required. Small-2, Medium-4 and Large-6 SAS Grid instances will be launched",
+            "Description": "Select the type of SAS Grid Infrastructure is required. Small-2, Medium-4 and Large-6 SAS Grid instances will be launched",
             "Type": "String",
             "Default": "Medium",
             "AllowedValues": [
@@ -124,7 +124,7 @@
             "Type": "AWS::EC2::KeyPair::KeyName"
         },
         "LustreOSSEBSVolumeSize": {
-            "Description": "EBS volume size (in GiB) for Lustre OSS nodes. You can specify 100-9900 GiB. Provide size (in GiB) for Lustre OSS Data Volume in multiples of 100. Volume size for each OSS node will be assigned based on the input provided here",
+            "Description": "EBS volume size (in GiB) for Lustre OSS nodes. You can specify 100-9900 GiB.?Provide size (in GiB) for Lustre OSS Data Volume in multiples of 100. Volume size for each OSS node will be assigned based on the input provided here",
             "Type": "String",
             "MinLength": "3",
             "MaxLength": "4",
@@ -162,6 +162,13 @@
         "VPCID": {
             "Description": "Select the ID of an existing VPC",
             "Type": "AWS::EC2::VPC::Id"
+        },
+        "VPCCIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Default": "10.0.0.0/16",
+            "Description": "CIDR Block for the VPC",
+            "Type": "String"
         }
     },
     "Conditions": {
@@ -175,54 +182,10 @@
         }
     },
     "Resources": {
-        "SASGridStack": {
-            "Type": "AWS::CloudFormation::Stack",
-            "Properties": {
-                "TemplateURL": {
-                    "Fn::Sub": [
-                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/sas-nodes.template",
-                        {
-                            "QSS3Region": {
-                                "Fn::If": [
-                                    "GovCloudCondition",
-                                    "s3-us-gov-west-1",
-                                    "s3"
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "Parameters": {
-                    "SASGridKeyPairName": {
-                        "Ref": "SASGridKeyPairName"
-                    },
-                    "NumberOfOSSNodes": {
-                        "Ref": "NumberOfOSSNodes"
-                    },
-                    "PrivateSubnet1ID": {
-                        "Ref": "PrivateSubnet1ID"
-                    },
-                    "SASGridInfraSize": {
-                        "Ref": "SASGridInfraSize"
-                    },
-                    "VPCID": {
-                        "Ref": "VPCID"
-                    },
-                    "DomainDNSName": {
-                        "Ref": "DomainDNSName"
-                    },
-                    "RDGWSG": {
-                        "Ref": "RDGWSG"
-                    }
-                }
-            },
-            "Metadata": {
-            }
-        },
         "LustreStack": {
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
-                "TemplateURL": {
+		"TemplateURL": {
                     "Fn::Sub": [
                         "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/lustre.template",
                         {
@@ -243,6 +206,9 @@
                     "LustreKeyPairName": {
                         "Ref": "LustreKeyPairName"
                     },
+                    "PrivateSubnet1ID": {
+                        "Ref": "PrivateSubnet1ID"
+                    },
                     "PrivateSubnet2ID": {
                         "Ref": "PrivateSubnet2ID"
                     },
@@ -251,12 +217,6 @@
                     },
                     "DomainDNSName": {
                         "Ref": "DomainDNSName"
-                    },
-                    "SASGridSG": {
-                        "Fn::GetAtt": [
-                            "SASGridStack",
-                            "Outputs.SASGridSGID"
-                        ]
                     },
                     "LustreOSSEBSVolumeSize": {
                         "Ref": "LustreOSSEBSVolumeSize"
@@ -267,18 +227,71 @@
                     "RDGWSG": {
                         "Ref": "RDGWSG"
                     },
-                    "EFSFileSystemId": {
+                    "VPCCIDR": {
+                        "Ref": "VPCCIDR"
+                    }
+                }
+            },
+            "DependsOn": []
+        },
+        "SASGridStack": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "TemplateURL": {
+                    "Fn::Sub": [
+                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/sas-nodes.template",
+                        {
+                            "QSS3Region": {
+                                "Fn::If": [
+                                    "GovCloudCondition",
+                                    "s3-us-gov-west-1",
+                                    "s3"
+                                ]
+                            }
+                        }
+                    ]
+                },
+		"Parameters": {
+                    "SASGridKeyPairName": {
+                        "Ref": "SASGridKeyPairName"
+                    },
+                    "PrivateSubnet1ID": {
+                        "Ref": "PrivateSubnet1ID"
+                    },
+                    "SASGridInfraSize": {
+                        "Ref": "SASGridInfraSize"
+                    },
+                    "VPCID": {
+                        "Ref": "VPCID"
+                    },
+                    "VPCCIDR": {
+                        "Ref": "VPCCIDR"
+                    },
+                    "DomainDNSName": {
+                        "Ref": "DomainDNSName"
+                    },
+                    "LustreMGTNodeIP": {
                         "Fn::GetAtt": [
-                            "SASGridStack",
-                            "Outputs.EFSFileSystemID"
+                            "LustreStack",
+                            "Outputs.LustreMGTNodeIP"
+                        ]
+                    },
+                    "SASGridSG": {
+                        "Fn::GetAtt": [
+                            "LustreStack",
+                            "Outputs.SASGridSGID"
+                        ]
+                    },
+                    "DynamoDBInstanceProfileName": {
+                        "Fn::GetAtt": [
+                            "LustreStack",
+                            "Outputs.DynamoDBInstanceProfileName"
                         ]
                     }
                 }
             },
-            "Metadata": {
-            },
             "DependsOn": [
-                "SASGridStack"
+                "LustreStack"
             ]
         }
     }
