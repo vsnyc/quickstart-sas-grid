@@ -311,8 +311,6 @@
                     },
                     "CreateAdditionalPrivateSubnets": "true"
                 }
-            },
-            "Metadata": {
             }
         },
         "RDGWStack": {
@@ -379,8 +377,6 @@
                         "Ref": "RDGWCIDR"
                     }
                 }
-            },
-            "Metadata": {
             }
         },
         "SASGridQuickStartStack": {
@@ -425,7 +421,7 @@
                             "Outputs.PrivateSubnet1BID"
                         ]
                     },
-					"QSS3BucketName": {
+                    "QSS3BucketName": {
                         "Ref": "QSS3BucketName"
                     },
                     "QSS3KeyPrefix": {
@@ -443,6 +439,9 @@
                             "Outputs.VPCID"
                         ]
                     },
+                    "VPCCIDR": {
+                        "Ref": "VPCCIDR"
+                    },
                     "RDGWSG": {
                         "Fn::GetAtt": [
                             "RDGWStack",
@@ -450,8 +449,6 @@
                         ]
                     }
                 }
-            },
-            "Metadata": {
             },
             "DependsOn": [
                 "RDGWStack"
