@@ -230,7 +230,9 @@
                                 "dynamodb:PutItem"
                             ],
                             "Effect": "Allow",
-                            "Resource": "*"
+                            "Resource": [
+                                "arn:aws:dynamodb:*:*:table/ServersList"
+                            ]
                         },
                         {
                             "Effect": "Allow",
@@ -349,19 +351,18 @@
                                         "ec2:Describe*",
                                         "ec2:TerminateInstances",
                                         "ec2:RebootInstances",
-                                        "ec2:*NetworkInterface*",
-                                        "dynamodb:DescribeTable",
-                                        "dynamodb:GetItem",
-                                        "dynamodb:Scan",
-                                        "dynamodb:UpdateItem",
-                                        "dynamodb:UpdateTable",
+                                        "ec2:*NetworkInterface*"
+                                    ],
+                                    "Resource": "*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
                                         "iam:PassRole",
                                         "iam:ListAttachedRolePolicies",
                                         "iam:AttachRolePolicy"
                                     ],
-                                    "Resource": [
-                                        "*"
-                                    ]
+                                    "Resource": "*"
                                 }
                             ]
                         }
@@ -972,7 +973,7 @@
                     }
                 ],
                 "SecurityGroupIngress": []
-            },
+            }
         },
         "MGTAllowLustreMDTSG": {
             "Type": "AWS::EC2::SecurityGroupIngress",
