@@ -139,46 +139,46 @@
                 "LUSTREAMI": "Lustre MarketPlace"
             },
             "us-east-2": {
-                "LUSTREAMI": "ami-1c95a079"
+                "LUSTREAMI": "ami-1f1b217a"
             },
             "us-east-1": {
-                "LUSTREAMI": "ami-e2e8e798"
+                "LUSTREAMI": "ami-b28a89cd"
             },
             "us-west-1": {
-                "LUSTREAMI": "ami-659d9205"
+                "LUSTREAMI": "ami-ce2dc0ad"
             },
             "us-west-2": {
-                "LUSTREAMI": "ami-6e8b0f16"
+                "LUSTREAMI": "ami-b4c09ecc"
             },
             "ap-northeast-1": {
-                "LUSTREAMI": "ami-46047320"
+                "LUSTREAMI": "ami-2a4c39c7"
             },
             "ap-northeast-2": {
-                "LUSTREAMI": "ami-24d3714a"
+                "LUSTREAMI": "ami-15893e7b"
             },
             "ap-south-1": {
-                "LUSTREAMI": "ami-ccb2e1a3"
+                "LUSTREAMI": "ami-3e625051"
             },
             "ap-southeast-1": {
-                "LUSTREAMI": "ami-e9efa995"
+                "LUSTREAMI": "ami-1d95d2f7"
             },
             "ap-southeast-2": {
-                "LUSTREAMI": "ami-def209bc"
+                "LUSTREAMI": "ami-e1389f83"
             },
             "ca-central-1": {
-                "LUSTREAMI": "ami-6e9c180a"
+                "LUSTREAMI": "ami-caaa27ae"
             },
             "eu-central-1": {
-                "LUSTREAMI": "ami-922743fd"
+                "LUSTREAMI": "ami-131310f8"
             },
             "eu-west-1": {
-                "LUSTREAMI": "ami-bb721bc2"
+                "LUSTREAMI": "ami-aa180340"
             },
             "eu-west-2": {
-                "LUSTREAMI": "ami-5ead4839"
+                "LUSTREAMI": "ami-e9e3098e"
             },
             "sa-east-1": {
-                "LUSTREAMI": "ami-a70d43cb"
+                "LUSTREAMI": "ami-8b2405e7"
             }
         },
         "InfraSizeMap": {
