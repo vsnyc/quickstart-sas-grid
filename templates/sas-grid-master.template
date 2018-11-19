@@ -6,6 +6,18 @@
             "ParameterGroups": [
                 {
                     "Label": {
+                        "default": "SAS Grid License Information"
+                    },
+                    "Parameters": [
+                        "SASSoftwareDepot",
+                        "SASSoftwareDepotName",
+                        "SASPlanFiles",
+                        "SASLicenseMeta",
+                               "SASLicenseApp"
+                    ]
+                },
+                {
+                    "Label": {
                         "default": "Network Configuration"
                     },
                     "Parameters": [
@@ -35,8 +47,9 @@
                         "default": "SAS Grid EC2 Configuration"
                     },
                     "Parameters": [
-                        "SASGridInfraSize",
-                        "SASGridKeyPairName"
+                        "SASGridKeyPairName",
+                        "NoOfSASGridInstances",
+                        "SASGridInstanceType"
                     ]
                 },
                 {
@@ -46,7 +59,8 @@
                     "Parameters": [
                         "LustreKeyPairName",
                         "NumberOfOSSNodes",
-                        "LustreOSSEBSVolumeSize"
+                        "LustreOSSEBSVolumeSize",
+                        "LustreEBSVolumeType"
                     ]
                 },
                 {
@@ -60,6 +74,21 @@
                 }
             ],
             "ParameterLabels": {
+                "SASSoftwareDepot": {
+                    "default": "SAS Software Depot tar file S3 location"
+                },
+                "SASSoftwareDepotName": {
+                    "default": "SAS Software Depot Name"
+                },
+                "SASPlanFiles": {
+                    "default": "SAS Software Plan Files folder S3 location"
+                },
+                "SASLicenseMeta": {
+                    "default": "SAS License file for Metadata Server"
+                },
+                "SASLicenseApp": {
+                    "default": "SAS License file for Application Server"
+                },
                 "AvailabilityZones": {
                     "default": "Availability Zones"
                 },
@@ -78,14 +107,14 @@
                 "SASGridKeyPairName": {
                     "default": "SAS Grid KeyPair Name"
                 },
-                "SASGridInfraSize": {
-                    "default": "SAS Grid Infra Size"
-                },
                 "LustreKeyPairName": {
                     "default": "Lustre KeyPair Name"
                 },
                 "LustreOSSEBSVolumeSize": {
                     "default": "Lustre OSS EBS Volume Size"
+                },
+                "LustreEBSVolumeType": {
+                    "default": "EBS Volumes type for Lustre Instances"
                 },
                 "NumberOfOSSNodes": {
                     "default": "Number of OSS Nodes"
@@ -116,17 +145,52 @@
                 },
                 "VPCCIDR": {
                     "default": "VPC CIDR"
+                },
+                "SASGridInstanceType": {
+                    "default": "Instance Type for SASGrid Instances"
+                },
+                "NoOfSASGridInstances": {
+                    "default": "Required No of SASGrid Instances"
                 }
             }
         }
     },
     "Parameters": {
+        "SASSoftwareDepot": {
+            "AllowedPattern": "^([-a-zA-Z0-9@:%_\\+.~#?&//=]*)$",
+            "ConstraintDescription": "must be a tar file in a valid S3 location, e.g. mysasbucket/sasorders/mydepot.tar",
+            "Description": "S3 file location of the Software Depot tar file.For e.g. If the SAS Software depot tar file is uploaded to S3 bucket location '<<s3-bucket-name>>/sas-depot', please enter '<<s3-bucket-name>>/sas-depot'",
+            "Type": "String"
+        },
+        "SASSoftwareDepotName": {
+            "AllowedPattern": "^[0-9a-zA-Z-_/]*$",
+            "ConstraintDescription": "Name of SAS Software Depot minus .tar, e.g. SASSoftwareDepot_Final",
+            "Description": "Name of the Software Depot tar file minus .tar.If you have uploaded SASSoftwareDepot_Final.tar please enter SASSoftwareDepot_Final",
+            "Type": "String"
+        },
+        "SASPlanFiles": {
+             "AllowedPattern": "^([-a-zA-Z0-9@:%_\\+.~#?&//=]*)$",
+             "ConstraintDescription": "must be a folder of planfiles in S3 location, e.g. mysasbucket/sasplanfiles/",
+             "Description": "S3 location of the folder with the SAS Plan files.For e.g. If the plan file is uploaded to '<<s3-bucket-name>>/plan-files', please enter '<<s3-bucket-name>>/plan-files'",
+             "Type": "String"
+        },
+        "SASLicenseMeta": {
+             "AllowedPattern": "^([-a-zA-Z0-9@:%_\\+.~#?&//=]*)$",
+             "ConstraintDescription": "must be file name containing the SAS Metadata license such as SAS94_9C1TDT_70243248_LINUX_X86-64.txt",
+             "Description": "Name of SAS Metadata License file.You will find this file inside the SAS Software Depot. It should be inside the folder sid_files.",
+             "Type": "String"
+        },
+        "SASLicenseApp": {
+             "AllowedPattern": "^([-a-zA-Z0-9@:%_\\+.~#?&//=]*)$",
+             "ConstraintDescription": "must be file name containing the SAS Application Server license such as SAS94_9C1TDT_70243248_LINUX_X86-64.txt",
+             "Description": "Name of SAS Application Server License file.You will find this file inside the SAS Software Depot. It should be inside the folder sid_files.",
+             "Type": "String"
+        },
         "AdminPassword": {
             "Description": "Password for the administrative account. Must be at least 8 characters containing letters, numbers and symbols",
             "Type": "String",
             "MinLength": "8",
             "MaxLength": "32",
-            "AllowedPattern": "(?=^.{6,255}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
             "NoEcho": "true"
         },
         "AdminUser": {
@@ -138,7 +202,7 @@
             "AllowedPattern": "[a-zA-Z0-9]*"
         },
         "AvailabilityZones": {
-            "Description": "List of Availability Zones to use for the subnets in the VPC. This Quick Start uses a single Availability Zone for SAS Grid deployment and will use the first zone you specify.",
+            "Description": "List of Availability Zones to use for the subnets in the VPC. PLEASE SELECT MINIMUM OF 2 AVAILABILITY ZONES",
             "Type": "List<AWS::EC2::AvailabilityZone::Name>"
         },
         "DomainDNSName": {
@@ -157,26 +221,41 @@
             "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
             "Type": "AWS::EC2::KeyPair::KeyName"
         },
-        "SASGridInfraSize": {
-            "Description": "Select the type of SAS Grid Infrastructure is required. Small-2, Medium-4 and Large-6 SAS Grid instances will be launched",
+        "SASGridInstanceType": {
             "Type": "String",
-            "Default": "Medium",
+            "Default": "i3.8xlarge",
             "AllowedValues": [
-                "Small",
-                "Medium",
-                "Large"
+                "i3.8xlarge"
             ]
+        },
+        "NoOfSASGridInstances": {
+            "Description": "Provide the number of SASGrid instances are required",
+            "Type": "Number",
+            "MinValue": "2",
+            "MaxValue": "20",
+            "Default": "2"
         },
         "LustreKeyPairName": {
             "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
             "Type": "AWS::EC2::KeyPair::KeyName"
         },
         "LustreOSSEBSVolumeSize": {
-            "Description": "EBS volume size (in GiB) for Lustre OSS nodes. You can specify 100-9900 GiB. Provide size (in GiB) for Lustre OSS Data Volume in multiples of 100. Volume size for each OSS node will be assigned based on the input provided here",
+            "Description": "EBS volume size (in GiB) for Lustre OSS nodes. You can specify 100-9900 GiB. Provide size (in GiB) for Lustre OSS Data Volume in multiples of 100. Volume size for each OSS node will be assigned based on the input provided here",
             "Type": "String",
             "MinLength": "3",
             "MaxLength": "4",
             "Default": "100"
+        },
+        "LustreEBSVolumeType": {
+            "Type": "String",
+            "Default": "gp2",
+            "AllowedValues": [
+                "gp2",
+                "io1",
+                "standard",
+                "sc1",
+                "st1"
+            ]
         },
         "NumberOfOSSNodes": {
             "Description": "Provide the number of Lustre OSS Node instances are required",
@@ -260,6 +339,39 @@
                     "Ref": "AWS::Region"
                 },
                 "us-gov-west-1"
+            ]
+        }
+    },
+    "Rules": {
+        "LustreSupportedRegionRule": {
+            "Assertions": [
+                {
+                    "Assert": {
+                        "Fn::Contains": [
+                            [
+                                "ap-southeast-2",
+                                "us-east-2",
+                                "us-east-1",
+                                "us-west-1",
+                                "us-west-2",
+                                "ap-northeast-1",
+                                "ap-northeast-2",
+                                "ap-south-1",
+                                "ap-southeast-1",
+                                "ap-southeast-2",
+                                "ca-central-1",
+                                "eu-central-1",
+                                "eu-west-1",
+                                "eu-west-2",
+                                "eu-west-3"
+                            ],
+                            {
+                                "Ref": "AWS::Region"
+                            }
+                        ]
+                    },
+                    "AssertDescription": "This Quick Start utilizes Lustre which is only available in the US West (Oregon), US West (N. California), US East (Ohio), US East (N. Virginia), Asia Pacific (Mumbai), Asia Pacific (Seoul), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), EU (Frankfurt), EU (Ireland), EU (London) and EU (Paris) regions. Please launch the stack in one of these regions to continue."
+                }
             ]
         }
     },
@@ -365,10 +477,10 @@
                         ]
                     },
                     "QSS3BucketName": {
-                        "Ref": "QSS3BucketName"
+                        "Fn::Sub": "aws-quickstart"
                     },
                     "QSS3KeyPrefix": {
-                        "Fn::Sub": "${QSS3KeyPrefix}submodules/quickstart-microsoft-rdgateway/"
+                        "Fn::Sub": "quickstart-sas-grid/submodules/quickstart-microsoft-rdgateway/"
                     },
                     "RDGWInstanceType": {
                         "Ref": "RDGWInstanceType"
@@ -377,9 +489,14 @@
                         "Ref": "RDGWCIDR"
                     }
                 }
+            },
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Timeout": "PT70M"
+                }
             }
         },
-        "SASGridQuickStartStack": {
+        "SASGridStack": {
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
                 "TemplateURL": {
@@ -400,14 +517,44 @@
                     "DomainDNSName": {
                         "Ref": "DomainDNSName"
                     },
+                    "AdminPassword": {
+                        "Ref": "AdminPassword"
+                    },
+                    "AdminIngressLocation": {
+                        "Ref": "RDGWCIDR"
+                    },
                     "SASGridKeyPairName": {
                         "Ref": "SASGridKeyPairName"
+                    },
+                    "SASGridInstanceType": {
+                        "Ref": "SASGridInstanceType"
+                    },
+                    "NoOfSASGridInstances": {
+                        "Ref": "NoOfSASGridInstances"
                     },
                     "LustreKeyPairName": {
                         "Ref": "LustreKeyPairName"
                     },
                     "LustreOSSEBSVolumeSize": {
                         "Ref": "LustreOSSEBSVolumeSize"
+                    },
+                    "LustreEBSVolumeType": {
+                        "Ref": "LustreEBSVolumeType"
+                    },
+                    "SASSoftwareDepot": {
+                        "Ref": "SASSoftwareDepot"
+                    },
+                    "SASSoftwareDepotName": {
+                        "Ref": "SASSoftwareDepotName"
+                    },
+                    "SASPlanFiles": {
+                        "Ref": "SASPlanFiles"
+                    },
+                    "SASLicenseMeta": {
+                        "Ref": "SASLicenseMeta"
+                    },
+                    "SASLicenseApp": {
+                        "Ref": "SASLicenseApp"
                     },
                     "PrivateSubnet1ID": {
                         "Fn::GetAtt": [
@@ -421,14 +568,17 @@
                             "Outputs.PrivateSubnet1BID"
                         ]
                     },
+                    "PublicSubnet1ID": {
+                        "Fn::GetAtt": [
+                            "VPCStack",
+                            "Outputs.PublicSubnet1ID"
+                        ]
+                    },
                     "QSS3BucketName": {
                         "Ref": "QSS3BucketName"
                     },
                     "QSS3KeyPrefix": {
                         "Ref": "QSS3KeyPrefix"
-                    },
-                    "SASGridInfraSize": {
-                        "Ref": "SASGridInfraSize"
                     },
                     "NumberOfOSSNodes": {
                         "Ref": "NumberOfOSSNodes"

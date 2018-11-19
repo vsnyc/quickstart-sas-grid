@@ -1,0 +1,84 @@
+[
+  {
+    "ParameterKey": "SASSoftwareDepot",
+    "ParameterValue": "mercury-deployment-data/grid/SASSoftwareDepot_Final.tar"
+  },
+  {
+    "ParameterKey": "SASSoftwareDepotName",
+    "ParameterValue": "SASSoftwareDepot_Final"
+  },
+  {
+    "ParameterKey": "SASPlanFiles",
+    "ParameterValue": "mercury-deployment-data/grid/PlanFiles"
+  },
+  {
+    "ParameterKey": "SASGridKeyPairName",
+    "ParameterValue": "a3scas"
+  },
+  {
+    "ParameterKey": "LustreKeyPairName",
+    "ParameterValue": "a3scas"
+  },
+  {
+    "ParameterKey": "LustreOSSEBSVolumeSize",
+    "ParameterValue": "100"
+  },
+  {
+    "ParameterKey": "NumberOfOSSNodes",
+    "ParameterValue": "3"
+  },
+  {
+    "ParameterKey": "SASGridInfraSize",
+    "ParameterValue": "Small"
+  },
+  {
+    "ParameterKey": "DomainDNSName",
+    "ParameterValue": "example.com"
+  },
+  {
+    "ParameterKey": "VPCID",
+    "ParameterValue": "vpc-05ae68a3854012089"
+  },
+  {
+    "ParameterKey": "VPCCIDR",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "PrivateSubnet1ID",
+    "ParameterValue": "subnet-0641ae5f3bbfea0f3"
+  },
+  {
+    "ParameterKey": "PrivateSubnet2ID",
+    "ParameterValue": "subnet-034dfad6d68a8027f"
+  },
+  {
+    "ParameterKey": "PublicSubnet1ID",
+    "ParameterValue": "subnet-08f760aac37a805b1"
+  },
+
+  {
+    "ParameterKey": "AdminIngressLocation",
+    "ParameterValue": "149.173.0.0/16"
+  },
+  {
+    "ParameterKey": "RDGWSG",
+    "ParameterValue": "sg-028a79170a7cb337f"
+  },
+
+  {
+    "ParameterKey": "QSS3BucketName",
+    "ParameterValue": "mercury-playpen"
+  },
+  {
+    "ParameterKey": "QSS3KeyPrefix",
+    "ParameterValue": "dev-grid-eurmae/"
+  },
+  {
+    "ParameterKey": "AdminPassword",
+    "ParameterValue": "adminadmin1"
+  }
+
+
+
+]
+

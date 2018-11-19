@@ -1,0 +1,87 @@
+[
+
+  {
+    "ParameterKey": "AvailabilityZones",      
+    "ParameterValue": "us-east-1a,us-east-1b,us-east-1c"
+  },
+  {
+    "ParameterKey": "SASSoftwareDepot",
+    "ParameterValue": "mercury-deployment-data/grid"
+  },
+  {
+    "ParameterKey": "SASSoftwareDepotName",
+    "ParameterValue": "SASSoftwareDepot_Final"
+  },
+  {
+    "ParameterKey": "SASPlanFiles",
+    "ParameterValue": "mercury-deployment-data/grid/PlanFiles"
+  },
+  {
+    "ParameterKey": "SASLicenseMeta",
+    "ParameterValue": "SAS94_9C1TDT_70243248_LINUX_X86-64.txt"
+  },
+  {
+    "ParameterKey": "SASLicenseApp",
+    "ParameterValue": "SAS94_9C1TDT_70243247_LINUX_X86-64.txt"
+  },
+  {
+    "ParameterKey": "SASGridKeyPairName",
+    "ParameterValue": "a3scas"
+  },
+  {
+    "ParameterKey": "RDGWKeyPairName",    
+    "ParameterValue": "a3scas"
+  },
+  {
+    "ParameterKey": "LustreKeyPairName",
+    "ParameterValue": "a3scas"
+  },
+  {
+    "ParameterKey": "LustreOSSEBSVolumeSize",
+    "ParameterValue": "100"
+  },
+  {
+    "ParameterKey": "NumberOfOSSNodes",
+    "ParameterValue": "3"
+  },
+  {
+    "ParameterKey": "DomainDNSName",
+    "ParameterValue": "grid.sas"
+  },
+  {
+    "ParameterKey": "VPCCIDR",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "RDGWCIDR",
+    "ParameterValue": "149.173.0.0/16"
+  },
+  {
+    "ParameterKey": "RDGWInstanceType",
+    "ParameterValue": "t2.large"  
+  },
+  {
+    "ParameterKey": "QSS3BucketName",
+    "ParameterValue": "mercury-playpen"
+  },
+  {
+    "ParameterKey": "QSS3KeyPrefix",
+    "ParameterValue": "dev-grid-befiol/"
+  },
+  {
+    "ParameterKey": "AdminUser",
+    "ParameterValue": "StackAdmin"
+  },
+  {
+    "ParameterKey": "AdminPassword",
+    "ParameterValue": "adminadmin1!"
+  },
+  {
+    "ParameterKey": "PublicSubnet1CIDR",
+    "ParameterValue": "10.0.128.0/20"
+  },
+  {
+    "ParameterKey": "PublicSubnet2CIDR",
+    "ParameterValue": "10.0.144.0/20"
+  }
+]
