@@ -472,7 +472,7 @@
             "Properties": {
                 "TemplateURL": {
                     "Fn::Sub": [
-                       "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/linux-bastion.template",
+                       "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/linux-bastion.template.yaml",
                         {
                             "QSS3Region": {
                                 "Fn::If": [
