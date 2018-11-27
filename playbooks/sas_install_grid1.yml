@@ -1,0 +1,50 @@
+---
+- hosts: sasgrid1
+  become: yes
+  become_user: root
+  vars_files:
+    -  /tmp/quickstart/playbooks/vars.yml
+
+  tasks:
+
+  - name: Template over response file
+    template:
+      src: "/tmp/quickstart/playbooks/templates/{{ item }}.j2"
+      dest: "/sas/quickstart/playbooks/templates/{{ item }}"
+      owner: sasinst
+      group: sas
+    with_items:
+      - grid1_install.txt
+      - grid1_config.txt
+      - studio_config.txt
+
+  - name: Change permissions on script 
+    shell: |
+      chmod 755 /sas/quickstart/playbooks/templates/sasgrid1.sh
+      chmod 755 /sas/quickstart/playbooks/templates/sasgrid_all.sh
+
+- hosts: sasgridnodes
+  become: yes
+  become_user: ec2-user
+  vars_files:
+    -  /tmp/quickstart/playbooks/vars.yml
+
+  tasks:
+  - name: Set options on all gridnodes
+    shell: |
+      . /sas/lsf/conf/profile.lsf;
+      /sas/quickstart/playbooks/templates/sasgrid_all.sh &> /tmp/sasgrid_all.log
+
+- hosts: sasgrid1
+  become: yes
+  become_user: ec2-user
+  vars_files:
+    -  /tmp/quickstart/playbooks/vars.yml
+
+  tasks:
+  - name: Start SAS on SAS Grid1 Server
+    command: . /sas/lsf/conf/profile.lsf
+
+  tasks:
+  - name: Start SAS on SAS Grid1 Server
+    command: sh /sas/quickstart/playbooks/templates/sasgrid1.sh {{SASSoftwareDepotName}} &> /tmp/sasgrid1.log

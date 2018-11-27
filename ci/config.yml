@@ -1,0 +1,15 @@
+global:
+  marketplace-ami: true
+  owner: quickstart-eng@amazon.com
+  qsname: quickstart-sas-grid
+  regions:
+    - us-east-1
+    - us-west-2
+    - eu-west-1
+    - ap-southeast-2
+  reporting: true
+
+tests:
+  quickstart-sas-gridt1:
+    parameter_input: sasgrid-quickstart-input-withvpc.json
+    template_file: sas-grid-master.template
