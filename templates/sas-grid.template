@@ -329,7 +329,7 @@
         "LustreStack": {
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
-				"TemplateURL": {
+                "TemplateURL": {
                     "Fn::Sub": [
                         "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/lustre.template",
                         {
@@ -374,7 +374,7 @@
                     "LustreEBSVolumeType": {
                         "Ref": "LustreEBSVolumeType"
                     },
-					"QSS3BucketName": {
+                    "QSS3BucketName": {
                        "Ref": "QSS3BucketName"
                     },
                     "QSS3KeyPrefix": {
@@ -455,7 +455,7 @@
                             "Outputs.DynamoDBInstanceProfileName"
                         ]
                     },
-					"DynamoDBTableName": {
+                    "DynamoDBTableName": {
                         "Fn::GetAtt": [
                             "LustreStack",
                             "Outputs.DynamoDBTableName"
@@ -467,12 +467,12 @@
                 "LustreStack"
             ]
         },
-                "LinuxBastionStack": {
+        "LinuxBastionStack": {
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
                 "TemplateURL": {
                     "Fn::Sub": [
-                       "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/linux-bastion.template.yaml",
+                       "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/linux-bastion.template",
                         {
                             "QSS3Region": {
                                 "Fn::If": [
@@ -484,7 +484,7 @@
                         }
                     ]
                 },
-				"Parameters": {
+                "Parameters": {
                     "SASSoftwareDepot": {
                         "Ref": "SASSoftwareDepot"
                     },
