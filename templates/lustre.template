@@ -12,7 +12,7 @@
                         "VPCID",
                         "PrivateSubnet1ID",
                         "PrivateSubnet2ID",
-						"VPCCIDR",
+                        "VPCCIDR",
                         "RDGWSG"
                     ]
                 },
@@ -64,9 +64,9 @@
                 "LustreEBSVolumeType": {
                     "default": "EBS Volumes type for Lustre Instances"
                 },
-				"VPCCIDR": {
-					"default": "CIDR of VPC"
-				}
+                "VPCCIDR": {
+                    "default": "CIDR of VPC"
+                }
             }
         }
     },
@@ -614,8 +614,8 @@
                                 },
                                 "\n",
                                 "hostnamectl set-hostname --static 'mgtnode'$NodeNumber'.'$DOMAIN'' && echo ''$IP'   mgtnode'$NodeNumber'.'$DOMAIN' mgtnode'$NodeNumber'' >> /nfs/hostsfile \n",
-								"echo 'preserve_hostname: true' >> /etc/cloud/cloud.cfg \n",
-								"chmod 777 /nfs/hostsfile \n",
+                                "echo 'preserve_hostname: true' >> /etc/cloud/cloud.cfg \n",
+                                "chmod 777 /nfs/hostsfile \n",
                                 "HOSTFILEENTRY=`cat /nfs/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
                                 "cat /nfs/hostsfile >> /etc/hosts \n",
                                 "pip install awscli \n",
@@ -644,10 +644,10 @@
                                 },
                                 "\n",
                                 "aws --region $REGION dynamodb put-item --table-name ",
-								{
-									"Ref": "ServersList"
+                                {
+                                    "Ref": "ServersList"
                                 },
-								" --item '{ \"InstanceId\": { \"S\": \"'\"$INSTANCEID\"'\" }, \"FQDN\": {\"S\": \"'\"$FQDN\"'\"}, \"ShortName\":{\"S\": \"'\"$SHORTNAME\"'\"}, \"Priority\": {\"N\": \"'\"$PRIORITY\"'\"}, \"PrivateIp\":{\"S\": \"'\"$PRIVATEIP\"'\"}, \"DailyRetention\":{\"S\": \"'\"$DAILYRETENTION\"'\"}, \"WeeklyRetention\":{\"S\": \"'\"$WEEKLYRETENTION\"'\"} }' \n",
+                                " --item '{ \"InstanceId\": { \"S\": \"'\"$INSTANCEID\"'\" }, \"FQDN\": {\"S\": \"'\"$FQDN\"'\"}, \"ShortName\":{\"S\": \"'\"$SHORTNAME\"'\"}, \"Priority\": {\"N\": \"'\"$PRIORITY\"'\"}, \"PrivateIp\":{\"S\": \"'\"$PRIVATEIP\"'\"}, \"DailyRetention\":{\"S\": \"'\"$DAILYRETENTION\"'\"}, \"WeeklyRetention\":{\"S\": \"'\"$WEEKLYRETENTION\"'\"} }' \n",
                                 "aws --region $REGION ec2 create-tags --resources $INSTANCEID --tags Key=Name,Value=$FQDN \n",
                                 "echo 'BootStrap completed successfully' \n",
                                 "echo 'Server will now reboot' \n",
@@ -880,7 +880,7 @@
                                 },
                                 "\n",
                                 "hostnamectl set-hostname --static  'mdtnode'$NodeNumber'.'$DOMAIN'' && echo ''$IP'   mdtnode'$NodeNumber'.'$DOMAIN' mdtnode'$NodeNumber'' >> /nfs/hostsfile \n",
-								"echo 'preserve_hostname: true' >> /etc/cloud/cloud.cfg \n",
+                                "echo 'preserve_hostname: true' >> /etc/cloud/cloud.cfg \n",
                                 "HOSTFILEENTRY=`cat /nfs/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
                                 "cat /nfs/hostsfile >> /etc/hosts \n",
                                 "mkfs.lustre --fsname lustre --mdt --reformat --mgsnode=",
@@ -918,10 +918,10 @@
                                 },
                                 "\n",
                                 "aws --region $REGION dynamodb put-item --table-name ",
-								{
-									"Ref": "ServersList"
+                                {
+                                    "Ref": "ServersList"
                                 },
-								" --item '{ \"InstanceId\": { \"S\": \"'\"$INSTANCEID\"'\" }, \"FQDN\": {\"S\": \"'\"$FQDN\"'\"}, \"ShortName\":{\"S\": \"'\"$SHORTNAME\"'\"}, \"Priority\": {\"N\": \"'\"$PRIORITY\"'\"}, \"PrivateIp\":{\"S\": \"'\"$PRIVATEIP\"'\"}, \"DailyRetention\":{\"S\": \"'\"$DAILYRETENTION\"'\"}, \"WeeklyRetention\":{\"S\": \"'\"$WEEKLYRETENTION\"'\"} }' \n",
+                                " --item '{ \"InstanceId\": { \"S\": \"'\"$INSTANCEID\"'\" }, \"FQDN\": {\"S\": \"'\"$FQDN\"'\"}, \"ShortName\":{\"S\": \"'\"$SHORTNAME\"'\"}, \"Priority\": {\"N\": \"'\"$PRIORITY\"'\"}, \"PrivateIp\":{\"S\": \"'\"$PRIVATEIP\"'\"}, \"DailyRetention\":{\"S\": \"'\"$DAILYRETENTION\"'\"}, \"WeeklyRetention\":{\"S\": \"'\"$WEEKLYRETENTION\"'\"} }' \n",
                                 "aws --region $REGION ec2 create-tags --resources $INSTANCEID --tags Key=Name,Value=$FQDN \n",
                                 "echo 'BootStrap completed successfully' \n",
                                 "echo 'Server will now reboot' \n",
@@ -1363,7 +1363,40 @@
                                         "Arn"
                                     ]
                                 },
-                                "';\nconsole.log(iaminstanceprofile);\nvar AWS = require('aws-sdk');\nexports.handler = function(event, context) {\n  var physicalId = event.PhysicalResourceId || 'none';\n  function success(data) {\n    return response.send(event, context, response.SUCCESS, data, physicalId);\n  }\n  function failed(e) {\n    return response.send(event, context, response.FAILED, e, physicalId);\n  }\n  var ec2 = new AWS.EC2();\n  var instances;\n  if (event.RequestType == 'Create') {\n    var launchParams = event.ResourceProperties;\n    launchParams['IamInstanceProfile'] = iaminstanceprofile;\n    delete launchParams.ServiceToken;\n    ec2.runInstances(launchParams).promise().then((data)=> {\n      instances = data.Instances.map((data)=> data.InstanceId);\n      physicalId = instances.join(':');\n      return ec2.waitFor('instanceRunning', {InstanceIds: instances}).promise();\n    }).then((data)=> success({Instances: instances})\n    ).catch((e)=> failed(e));\n  } else if (event.RequestType == 'Delete') {\n    if (physicalId == 'none') {return success({});}\n    var deleteParams = {InstanceIds: physicalId.split(':')};\n    ec2.terminateInstances(deleteParams).promise().then((data)=>\n      ec2.waitFor('instanceTerminated', deleteParams).promise()\n    ).then((data)=>success({})\n    ).catch((e)=>failed(e));\n  } else {\n    return failed({Error: \"In-place updates not supported.\"});\n  }\n};\n"
+                                "';\n",
+                                "console.log(iaminstanceprofile);\n",
+                                "var AWS = require('aws-sdk');\n",
+                                "exports.handler = function(event, context) {\n",
+                                "  var physicalId = event.PhysicalResourceId || 'none';\n",
+                                "  function success(data) {\n",
+                                "    return response.send(event, context, response.SUCCESS, data, physicalId);\n",
+                                "  }\n",
+                                "  function failed(e) {\n",
+                                "    return response.send(event, context, response.FAILED, e, physicalId);\n",
+                                "  }\n",
+                                "  var ec2 = new AWS.EC2();\n",
+                                "  var instances;\n",
+                                "  if (event.RequestType == 'Create') {\n",
+                                "    var launchParams = event.ResourceProperties;\n",
+                                "    launchParams['IamInstanceProfile'] = iaminstanceprofile;\n",
+                                "    delete launchParams.ServiceToken;\n",
+                                "    ec2.runInstances(launchParams).promise().then((data)=> {\n",
+                                "      instances = data.Instances.map((data)=> data.InstanceId);\n",
+                                "      physicalId = instances.join(':');\n",
+                                "      return ec2.waitFor('instanceRunning', {InstanceIds: instances}).promise();\n",
+                                "    }).then((data)=> success({Instances: instances})\n",
+                                "    ).catch((e)=> failed(e));\n",
+                                "  } else if (event.RequestType == 'Delete') {\n",
+                                "    if (physicalId == 'none') {return success({});}\n",
+                                "    var deleteParams = {InstanceIds: physicalId.split(':')};\n",
+                                "    ec2.terminateInstances(deleteParams).promise().then((data)=>\n",
+                                "      ec2.waitFor('instanceTerminated', deleteParams).promise()\n",
+                                "    ).then((data)=>success({})\n",
+                                "    ).catch((e)=>failed(e));\n",
+                                "  } else {\n",
+                                "    return failed({Error: \"In-place updates not supported.\"});\n",
+                                "  }\n",
+                                "};\n"
                             ]
                         ]
                     }
@@ -1782,7 +1815,7 @@
                                 },
                                 "\n",
                                 "hostnamectl set-hostname --static  'ossnode'$NodeNumber'.'$DOMAIN'' && echo ''$IP'   ossnode'$NodeNumber'.'$DOMAIN' ossnode'$NodeNumber'' >> /nfs/hostsfile \n",
-								"echo 'preserve_hostname: true' >> /etc/cloud/cloud.cfg \n",
+                                "echo 'preserve_hostname: true' >> /etc/cloud/cloud.cfg \n",
                                 "HOSTFILEENTRY=`cat /nfs/hostsfile | nl | cut -f1 | sed -r 's/ //g'| sort -rh | head -1` \n",
                                 "cat /nfs/hostsfile >> /etc/hosts \n",
                                 "echo 'mkfs.lustre --fsname lustre --reformat --ost --mgsnode=",
@@ -1820,10 +1853,10 @@
                                 },
                                 "\n",
                                 "aws --region $REGION dynamodb put-item --table-name ",
-								{
-									"Ref": "ServersList"
+                                {
+                                    "Ref": "ServersList"
                                 },
-								" --item '{ \"InstanceId\": { \"S\": \"'\"$INSTANCEID\"'\" }, \"FQDN\": {\"S\": \"'\"$FQDN\"'\"}, \"ShortName\":{\"S\": \"'\"$SHORTNAME\"'\"}, \"Priority\": {\"N\": \"'\"$PRIORITY\"'\"}, \"PrivateIp\":{\"S\": \"'\"$PRIVATEIP\"'\"}, \"DailyRetention\":{\"S\": \"'\"$DAILYRETENTION\"'\"}, \"WeeklyRetention\":{\"S\": \"'\"$WEEKLYRETENTION\"'\"} }' \n",
+                                " --item '{ \"InstanceId\": { \"S\": \"'\"$INSTANCEID\"'\" }, \"FQDN\": {\"S\": \"'\"$FQDN\"'\"}, \"ShortName\":{\"S\": \"'\"$SHORTNAME\"'\"}, \"Priority\": {\"N\": \"'\"$PRIORITY\"'\"}, \"PrivateIp\":{\"S\": \"'\"$PRIVATEIP\"'\"}, \"DailyRetention\":{\"S\": \"'\"$DAILYRETENTION\"'\"}, \"WeeklyRetention\":{\"S\": \"'\"$WEEKLYRETENTION\"'\"} }' \n",
                                 "aws --region $REGION ec2 create-tags --resources $INSTANCEID --tags Key=Name,Value=$FQDN \n",
                                 "echo 'BootStrap completed successfully' \n",
                                 "echo 'Server will now reboot' \n",
@@ -1852,7 +1885,7 @@
                                 },
                                 "\"' >> /opt/signal.sh \n",
                                 "echo 'fi' >> /opt/signal.sh \n",
-								"KEY=dummy\n",
+                                "KEY=dummy\n",
                                 {"Fn::Sub": "PARENT_STACK_ID=$(aws --region \"${AWS::Region}\" cloudformation describe-stacks --stack-name \"${AWS::StackName}\" --query \"Stacks[].ParentId\" --output text)\n"},
                                 "PARENT_STACK_NAME=$(aws --region ${REGION} cloudformation describe-stacks --stack-name \"${PARENT_STACK_ID}\" --query \"Stacks[].StackName\" --output text)\n",
                                                     "KEY=$(aws ssm get-parameter --region $REGION --name \"sas-grid-ansiblekey-${PARENT_STACK_NAME}\" --query Parameter.Value --output text)\n",
@@ -1871,82 +1904,209 @@
                 "DivideEBSVolumeSize"
             ]
         },
-		"AMIBackupExecutionRole": {
-			"Type": "AWS::IAM::Role",
-			"Properties": {
-				"AssumeRolePolicyDocument": {
-					"Version": "2012-10-17",
-					"Statement": [
-						{
-							"Effect": "Allow",
-							"Principal": {
-								"Service": ["lambda.amazonaws.com"]
-							},
-							"Action": ["sts:AssumeRole"]
-						}
-					]
-				},
-				"Path": "/"
-			}
-		},
-		"AMIBackupExecutionPolicy": {
-			"DependsOn": [
-				"AMIBackupExecutionRole"
-			],
-			"Type": "AWS::IAM::Policy",
-			"Properties": {
-				"PolicyName": "AMIBackupExecutionPolicy",
-				"Roles": [
-					{
-					    "Ref": "AMIBackupExecutionRole"
-					}
-				],
-				"PolicyDocument": {
-					"Version": "2012-10-17",
-					"Statement": [
-						{
-							"Effect": "Allow",
-							"Action": ["logs:*"],
-							"Resource": ["arn:aws:logs:*:*:*"]
-						},
-						{
-							"Effect": "Allow",
-							"Action": [
-								"ec2:Describe*",
-								"ec2:CreateImage",
-								"ec2:DeregisterImage",
-								"ec2:CreateSnapshot",
-								"ec2:DeleteSnapshot",
-								"ec2:CreateTags",
-								"ec2:ModifySnapshotAttribute",
-								"ec2:ResetSnapshotAttribute",
-								"dynamodb:DescribeTable",
-								"dynamodb:GetItem",
-								"dynamodb:GetRecords"
-							],
-							"Resource": ["*"]
-						}
-					]
-				}
-			}
-		},
+        "AMIBackupExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": ["lambda.amazonaws.com"]
+                            },
+                            "Action": ["sts:AssumeRole"]
+                        }
+                    ]
+                },
+                "Path": "/"
+            }
+        },
+        "AMIBackupExecutionPolicy": {
+            "DependsOn": [
+                "AMIBackupExecutionRole"
+            ],
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "AMIBackupExecutionPolicy",
+                "Roles": [
+                    {
+                        "Ref": "AMIBackupExecutionRole"
+                    }
+                ],
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": ["logs:*"],
+                            "Resource": ["arn:aws:logs:*:*:*"]
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:Describe*",
+                                "ec2:CreateImage",
+                                "ec2:DeregisterImage",
+                                "ec2:CreateSnapshot",
+                                "ec2:DeleteSnapshot",
+                                "ec2:CreateTags",
+                                "ec2:ModifySnapshotAttribute",
+                                "ec2:ResetSnapshotAttribute",
+                                "dynamodb:DescribeTable",
+                                "dynamodb:GetItem",
+                                "dynamodb:GetRecords"
+                            ],
+                             "Resource": {
+                                "Fn::Join": [
+                                    "",
+                                    [
+                                       "arn:aws:dynamodb:*:*:table/",
+                                       {
+                                          "Ref": "ServersList"
+                                       }
+                                    ]
+                                 ]
+                             }
+                        }
+                    ]
+                }
+            }
+        },
         "AutomatedAMIBackups": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "Role": {
-					"Fn::GetAtt": ["AMIBackupExecutionRole", "Arn"]
-				},
+                    "Fn::GetAtt": ["AMIBackupExecutionRole", "Arn"]
+                },
                 "Code": {
-                    "ZipFile": 
+                    "ZipFile":
                     {
                         "Fn::Join": [
                                     "",
                                     [
-                                        "import datetime\nimport boto3\nimport os\n\n\ndef get_account_id():\n\n    sts_client = boto3.client(\"sts\")\n    account_id = sts_client.get_caller_identity()[\"Account\"]\n    return account_id\n\n\ndef get_table_data(region, table):\n\n    retentions = []\n\n    dynamo_db = boto3.client(\"dynamodb\", region_name=region)\n    table_data = dynamo_db.scan(TableName=table, AttributesToGet=[\"InstanceId\", \"FQDN\", \"DailyRetention\", \"WeeklyRetention\"])\n    rows = table_data[\"Items\"]\n    \n    try:\n        for row in rows:\n            retentions.append({\n                \"instance_id\": row[\"InstanceId\"][\"S\"],\n                \"fqdn\": row[\"FQDN\"][\"S\"],\n                \"daily\": row[\"DailyRetention\"][\"S\"],\n                \"weekly\": row[\"WeeklyRetention\"][\"S\"]\n                })\n        return retentions\n    \n    except Exception as error:\n        print(\"KeyError\",error)\n        return None\n\n\n\ndef create_instance_image(client, instance_info):\n\n    today = datetime.datetime.now()\n    \n    instance_id = instance_info[\"instance_id\"]\n    fqdn = instance_info[\"fqdn\"]\n    image_name = fqdn + \"-\" + today.strftime(\"%d-%m-%Y %H:%M:%S\")\n\n    try:\n        response = client.create_image(InstanceId=instance_id, Name=image_name)\n        if response[\"ResponseMetadata\"][\"HTTPStatusCode\"] == 200:\n            print(\"Image Created Successfully..\")\n    except Exception as error:\n        print(error)\n    \n\ndef get_image(client, image):\n\n    try:\n        request = client.describe_images(Filters=[{\"Name\": \"name\", \"Values\":[image]}])\n        \n        if request[\"Images\"]:\n            image_info = request[\"Images\"][0] # we're filtering by image as value, will always get one\n            snapshots = [block[\"Ebs\"][\"SnapshotId\"] for block in image_info[\"BlockDeviceMappings\"]]\n            if image_info[\"State\"] == \"available\":\n                return {\"state\": image_info[\"State\"], \"image_id\": image_info[\"ImageId\"], \"snapshots\": snapshots}\n        else:\n            return None\n    except Exception as error:\n        return error\n\n\ndef delete_image(client, image_id):\n\n    if image_id is not None:\n        try:\n            response = client.deregister_image(ImageId=image_id)\n            if response[\"ResponseMetadata\"][\"HTTPStatusCode\"] == 200:\n                print(\"Image Successfully Deleted..\")\n        except Exception as error:\n            return error\n    else:\n        print(\"No Image found..\")\n\n\ndef lambda_handler(event, context):\n\n    region = os.environ[\"AWS_DEFAULT_REGION\"]\n    table = \"",
-								{
-									"Ref": "ServersList"
-                                },
-								"\"\n\n    today = datetime.datetime.now()\n\n    ec2_client = boto3.client(\"ec2\", region_name=region)\n\n    db_rows = get_table_data(region, table)\n    \n    if db_rows:\n\n        for row in db_rows:\n            \n            create_instance_image(ec2_client, row)\n    \n            daily_retention = today-datetime.timedelta(int(row[\"daily\"]))\n            daily_retention = daily_retention.strftime(\"%d-%m-%Y\")\n            daily_image = \"daily\" + \"-\" + row[\"fqdn\"] + \"-\" + daily_retention\n    \n            weekly_retention = today-datetime.timedelta(int(row[\"weekly\"]))\n            weekly_retention = weekly_retention.strftime(\"%d-%m-%Y\")\n            weekly_image = \"weekly\" + \"-\" + row[\"fqdn\"] + \"-\" + weekly_retention\n    \n            for image in [daily_image, weekly_image]:\n                image_info = get_image(ec2_client, image)\n                if image_info is not None:\n                    if image_info[\"state\"] == \"available\":\n                        del_status = delete_image(ec2_client, image_info[\"image_id\"])\n                        for snapshot in image_info[\"snapshots\"]:\n                            snap_status = ec2_client.delete_snapshot(SnapshotId=snapshot)\n                            if snap_status[\"ResponseMetadata\"][\"HTTPStatusCode\"] == 200:\n                                print(\"Snapshot deleted successfully..\")\n                else:\n                    print(\"Image '{}' not found\".format(image))\n    else:\n        print(\"Please check the data in DynamoDB table\")\n"
+                                        "import datetime\n",
+                                        "import boto3\n",
+                                        "import os\n",
+                                        "\n",
+                                        "\n",
+                                        "def get_account_id():\n",
+                                        "\n",
+                                        "    sts_client = boto3.client(\"sts\")\n",
+                                        "    account_id = sts_client.get_caller_identity()[\"Account\"]\n",
+                                        "    return account_id\n",
+                                        "\n",
+                                        "\n",
+                                        "def get_table_data(region, table):\n",
+                                        "\n",
+                                        "    retentions = []\n",
+                                        "\n",
+                                        "    dynamo_db = boto3.client(\"dynamodb\", region_name=region)\n",
+                                        "    table_data = dynamo_db.scan(TableName=table, AttributesToGet=[\"InstanceId\", \"FQDN\", \"DailyRetention\", \"WeeklyRetention\"])\n",
+                                        "    rows = table_data[\"Items\"]\n",
+                                        "    \n",
+                                        "    try:\n",
+                                        "        for row in rows:\n",
+                                        "            retentions.append({\n",
+                                        "                \"instance_id\": row[\"InstanceId\"][\"S\"],\n",
+                                        "                \"fqdn\": row[\"FQDN\"][\"S\"],\n",
+                                        "                \"daily\": row[\"DailyRetention\"][\"S\"],\n",
+                                        "                \"weekly\": row[\"WeeklyRetention\"][\"S\"]\n",
+                                        "                })\n",
+                                        "        return retentions\n",
+                                        "    \n",
+                                        "    except Exception as error:\n",
+                                        "        print(\"KeyError\",error)\n",
+                                        "        return None\n",
+                                        "\n",
+                                        "\n",
+                                        "\n",
+                                        "def create_instance_image(client, instance_info):\n",
+                                        "\n",
+                                        "    today = datetime.datetime.now()\n",
+                                        "    \n",
+                                        "    instance_id = instance_info[\"instance_id\"]\n",
+                                        "    fqdn = instance_info[\"fqdn\"]\n",
+                                        "    image_name = fqdn + \"-\" + today.strftime(\"%d-%m-%Y %H:%M:%S\")\n",
+                                        "\n",
+                                        "    try:\n",
+                                        "        response = client.create_image(InstanceId=instance_id, Name=image_name)\n",
+                                        "        if response[\"ResponseMetadata\"][\"HTTPStatusCode\"] == 200:\n",
+                                        "            print(\"Image Created Successfully..\")\n",
+                                        "    except Exception as error:\n",
+                                        "        print(error)\n",
+                                        "    \n",
+                                        "\n",
+                                        "def get_image(client, image):\n",
+                                        "\n",
+                                        "    try:\n",
+                                        "        request = client.describe_images(Filters=[{\"Name\": \"name\", \"Values\":[image]}])\n",
+                                        "        \n",
+                                        "        if request[\"Images\"]:\n",
+                                        "            image_info = request[\"Images\"][0] # we're filtering by image as value, will always get one\n",
+                                        "            snapshots = [block[\"Ebs\"][\"SnapshotId\"] for block in image_info[\"BlockDeviceMappings\"]]\n",
+                                        "            if image_info[\"State\"] == \"available\":\n",
+                                        "                return {\"state\": image_info[\"State\"], \"image_id\": image_info[\"ImageId\"], \"snapshots\": snapshots}\n",
+                                        "        else:\n",
+                                        "            return None\n",
+                                        "    except Exception as error:\n",
+                                        "        return error\n",
+                                        "\n",
+                                        "\n",
+                                        "def delete_image(client, image_id):\n",
+                                        "\n",
+                                        "    if image_id is not None:\n",
+                                        "        try:\n",
+                                        "            response = client.deregister_image(ImageId=image_id)\n",
+                                        "            if response[\"ResponseMetadata\"][\"HTTPStatusCode\"] == 200:\n",
+                                        "                print(\"Image Successfully Deleted..\")\n",
+                                        "        except Exception as error:\n",
+                                        "            return error\n",
+                                        "    else:\n",
+                                        "        print(\"No Image found..\")\n",
+                                        "\n",
+                                        "\n",
+                                        "def lambda_handler(event, context):\n",
+                                        "\n",
+                                        "    region = os.environ[\"AWS_DEFAULT_REGION\"]\n    table = \"",
+                                        {
+                                            "Ref": "ServersList"
+                                        },
+                                        "\"\n",
+                                        "\n",
+                                        "    today = datetime.datetime.now()\n",
+                                        "\n",
+                                        "    ec2_client = boto3.client(\"ec2\", region_name=region)\n",
+                                        "\n",
+                                        "    db_rows = get_table_data(region, table)\n",
+                                        "    \n",
+                                        "    if db_rows:\n",
+                                        "\n",
+                                        "        for row in db_rows:\n",
+                                        "            \n",
+                                        "            create_instance_image(ec2_client, row)\n",
+                                        "    \n",
+                                        "            daily_retention = today-datetime.timedelta(int(row[\"daily\"]))\n",
+                                        "            daily_retention = daily_retention.strftime(\"%d-%m-%Y\")\n",
+                                        "            daily_image = \"daily\" + \"-\" + row[\"fqdn\"] + \"-\" + daily_retention\n",
+                                        "    \n",
+                                        "            weekly_retention = today-datetime.timedelta(int(row[\"weekly\"]))\n",
+                                        "            weekly_retention = weekly_retention.strftime(\"%d-%m-%Y\")\n",
+                                        "            weekly_image = \"weekly\" + \"-\" + row[\"fqdn\"] + \"-\" + weekly_retention\n",
+                                        "    \n",
+                                        "            for image in [daily_image, weekly_image]:\n",
+                                        "                image_info = get_image(ec2_client, image)\n",
+                                        "                if image_info is not None:\n",
+                                        "                    if image_info[\"state\"] == \"available\":\n",
+                                        "                        del_status = delete_image(ec2_client, image_info[\"image_id\"])\n",
+                                        "                        for snapshot in image_info[\"snapshots\"]:\n",
+                                        "                            snap_status = ec2_client.delete_snapshot(SnapshotId=snapshot)\n",
+                                        "                            if snap_status[\"ResponseMetadata\"][\"HTTPStatusCode\"] == 200:\n",
+                                        "                                print(\"Snapshot deleted successfully..\")\n",
+                                        "                else:\n",
+                                        "                    print(\"Image '{}' not found\".format(image))\n",
+                                        "    else:\n",
+                                        "        print(\"Please check the data in DynamoDB table\")\n"
                                     ]
                                 ]
                     }
@@ -1954,9 +2114,9 @@
                 "Runtime": "python3.6",
                 "Handler": "index.lambda_handler"
             },
-			"DependsOn": [
-				"AMIBackupExecutionPolicy"
-			]
+            "DependsOn": [
+                "AMIBackupExecutionPolicy"
+            ]
         },
         "AMIBackupTrigger": {
             "Type": "AWS::Events::Rule",
@@ -1991,7 +2151,7 @@
                 }
             }
         },
-		"DynamoDBTableName": {
+        "DynamoDBTableName": {
             "Description": "Name of DynamoDB Table",
             "Value": {
                 "Ref": "ServersList"
