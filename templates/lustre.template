@@ -273,58 +273,6 @@
         "DynamoDBPutRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
-                "Policies": [
-                    {
-                        "PolicyName": "AnsibleKeySSMPolicy",
-                        "PolicyDocument": {
-                            "Statement": [
-                               {
-                                   "Action": "ssm:GetParameter",
-                                   "Resource": "arn:aws:ssm:*:*:parameter/*",
-                                   "Effect": "Allow"
-                               }
-                            ]
-                        }
-                    },
-                    {
-                        "PolicyName": "CloudformationPolicy",
-                        "PolicyDocument": {
-                            "Statement": [
-                               {
-                                   "Action": [
-                                       "cloudformation:DescribeStacks",
-                                       "cloudformation:DescribeStackEvents",
-                                       "cloudformation:DescribeStackResource",
-                                       "cloudformation:DescribeStackResources"
-                                   ],
-                                   "Resource": "arn:aws:cloudformation:*:*:stack/*/*",
-                                   "Effect": "Allow"
-                               }
-                            ]
-                        }
-                    },
-                    {
-                        "PolicyName": "mercury_s3_policy",
-                        "PolicyDocument": {
-                            "Statement": [
-                                {
-                                   "Sid": "VisualEditor0",
-                                   "Effect": "Allow",
-                                   "Action": [
-                                       "s3:GetObject",
-                                       "s3:ListBucket"
-                                   ],
-                                   "Resource": [
-                                       "arn:aws:s3:::mercury-playpen/*",
-                                       "arn:aws:s3:::mercury-deployment-data/*",
-                                       "arn:aws:s3:::mercury-deployment-data",
-                                       "arn:aws:s3:::mercury-playpen"
-                                   ]
-                               }
-                            ]
-                        }
-                    }
-                ],
                 "AssumeRolePolicyDocument": {
                     "Version": "2012-10-17",
                     "Statement": [
@@ -1938,36 +1886,55 @@
                     "Version": "2012-10-17",
                     "Statement": [
                         {
-                            "Effect": "Allow",
                             "Action": ["logs:*"],
-                            "Resource": ["arn:aws:logs:*:*:*"]
+                            "Resource": ["arn:aws:logs:*:*:*"],
+                            "Effect": "Allow"
                         },
                         {
-                            "Effect": "Allow",
                             "Action": [
                                 "ec2:Describe*",
-                                "ec2:CreateImage",
-                                "ec2:DeregisterImage",
-                                "ec2:CreateSnapshot",
-                                "ec2:DeleteSnapshot",
                                 "ec2:CreateTags",
-                                "ec2:ModifySnapshotAttribute",
-                                "ec2:ResetSnapshotAttribute",
-                                "dynamodb:DescribeTable",
-                                "dynamodb:GetItem",
-                                "dynamodb:GetRecords"
+                                "ec2:CreateImage",
+                                "ec2:CreateSnapshot"
                             ],
+                             "Resource": "*",
+                             "Effect": "Allow"
+                        },
+                        {
+                             "Action": [
+                                 "ec2:DeregisterImage"
+                             ],
+                             "Resource": "arn:aws:ec2:::image/*",
+                             "Effect": "Allow"
+                        },
+                        {
+                             "Action": [
+                                 "ec2:DeleteSnapshot",
+                                 "ec2:ModifySnapshotAttribute",
+                                 "ec2:ResetSnapshotAttribute"
+                             ],
+                             "Resource": "arn:aws:ec2:::snapshot/*",
+                             "Effect": "Allow"
+                        },
+                        {
+                             "Action": [
+                                 "dynamodb:DescribeTable",
+                                 "dynamodb:GetItem",
+                                 "dynamodb:GetRecords",
+                                 "dynamodb:Scan"
+                             ],
                              "Resource": {
-                                "Fn::Join": [
-                                    "",
-                                    [
-                                       "arn:aws:dynamodb:*:*:table/",
-                                       {
-                                          "Ref": "ServersList"
-                                       }
-                                    ]
+                                 "Fn::Join": [
+                                     "",
+                                     [
+                                         "arn:aws:dynamodb:*:*:table/",
+                                         {
+                                             "Ref": "ServersList"
+                                         }
+                                     ]
                                  ]
-                             }
+                             },
+                             "Effect": "Allow"
                         }
                     ]
                 }
@@ -2112,7 +2079,8 @@
                     }
                 },
                 "Runtime": "python3.6",
-                "Handler": "index.lambda_handler"
+                "Handler": "index.lambda_handler",
+                "Timeout": 900
             },
             "DependsOn": [
                 "AMIBackupExecutionPolicy"
