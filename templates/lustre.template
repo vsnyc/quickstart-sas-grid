@@ -320,14 +320,14 @@
                                      "s3:ListBucket"
                                  ],
                                  "Resource": [
-                                     { "Fn::Sub": "arn:aws:s3:::${QSS3BucketName}/*" },
+                                     { "Fn::Sub": "arn:aws:s3:::${QSS3BucketName}/${QSS3KeyPrefix}/*" },
+                                     { "Fn::Sub": "arn:aws:s3:::${QSS3BucketName}/${QSS3KeyPrefix}" },
                                      { "Fn::Sub": [ "arn:aws:s3:::${target_bucket_name}/*",
                                          { "target_bucket_name":
                                            { "Fn::Select": [0, { "Fn::Split": ["/", { "Fn::Sub": "${SASSoftwareDepot}" } ] } ] }} ] },
                                      { "Fn::Sub": [ "arn:aws:s3:::${target_bucket_name}",
                                          { "target_bucket_name":
-                                           { "Fn::Select": [0, { "Fn::Split": ["/", { "Fn::Sub": "${SASSoftwareDepot}" } ] } ] } } ] },
-                                     { "Fn::Sub": "arn:aws:s3:::${QSS3BucketName}" }
+                                           { "Fn::Select": [0, { "Fn::Split": ["/", { "Fn::Sub": "${SASSoftwareDepot}" } ] } ] } } ] }
                                  ]
                              }
                           ]
