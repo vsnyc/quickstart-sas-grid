@@ -46,5 +46,25 @@
     {
         "ParameterKey": "QSS3BucketName",
         "ParameterValue": "$[taskcat_autobucket]"
+    },
+    {
+        "ParameterKey": "SASSoftwareDepot",
+        "ParameterValue": "override_this"
+    },
+    {
+        "ParameterKey": "SASSoftwareDepotName",
+        "ParameterValue": "override_this"
+    },
+    {
+        "ParameterKey": "SASPlanFiles",
+        "ParameterValue": "override_this"
+    },
+    {
+        "ParameterKey": "SASLicenseMeta",
+        "ParameterValue": "override_this"
+    },
+    {
+        "ParameterKey": "SASLicenseApp",
+        "ParameterValue": "override_this"
     }
 ]
