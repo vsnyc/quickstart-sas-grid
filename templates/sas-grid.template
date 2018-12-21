@@ -24,14 +24,17 @@
                         "VPCID",
                         "PrivateSubnet1ID",
                         "PrivateSubnet2ID",
+                        "PublicSubnet1ID",
                         "VPCCIDR"
                     ]
                 },
                 {
                     "Label": {
-                        "default": "Microsoft RD Gateway configuration"
+                        "default": "Linux bastion configuration"
                     },
                     "Parameters": [
+                        "AdminPassword",
+                        "AdminIngressLocation",
                         "DomainDNSName",
                         "RDGWSG"
                     ]
@@ -68,6 +71,12 @@
                 }
             ],
             "ParameterLabels": {
+                "AdminPassword": {
+                    "default": "Admin password"
+                },
+                "AdminIngressLocation": {
+                    "default": "Admin ingress location"
+                },
                 "SASSoftwareDepot": {
                     "default": "SAS Software Depot tar file in S3"
                 },
@@ -94,6 +103,9 @@
                 },
                 "PrivateSubnet2ID": {
                     "default": "Private subnet 2 ID"
+                },
+                "PublicSubnet1ID": {
+                    "default": "Public subnet 1 ID"
                 },
                 "DomainDNSName": {
                     "default": "Domain DNS name"
@@ -171,6 +183,7 @@
         "DomainDNSName": {
             "AllowedPattern": "[a-zA-Z0-9]+\\..+",
             "Description": "Fully qualified domain name (FQDN) of the forest root domain, e.g. example.com.",
+            "Default": "example.com",
             "MaxLength": "25",
             "MinLength": "3",
             "Type": "String"
@@ -264,7 +277,7 @@
         "AdminIngressLocation": {
             "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$",
             "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-32",
-            "Description": "Allow admin access for this CIDR block",
+            "Description": "Allowed CIDR block for external access to the Linux bastion host.",
             "Type": "String"
         },
         "AdminPassword": {
