@@ -204,9 +204,9 @@
         },
         "InfraSizeMap": {
             "LustreInstances": {
-                "LustreOSSInstanceType": "r4.8xlarge",
-                "LustreMGTInstanceType": "r4.xlarge",
-                "LustreMDTInstanceType": "r4.4xlarge",
+                "LustreOSSInstanceType": "c4.8xlarge",
+                "LustreMGTInstanceType": "c4.xlarge",
+                "LustreMDTInstanceType": "c4.4xlarge",
                 "NoOfLustreMGTInstances": "1",
                 "NoOfLustreMDTInstances": "1"
             }
