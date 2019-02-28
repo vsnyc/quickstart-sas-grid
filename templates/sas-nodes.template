@@ -270,8 +270,8 @@
         },
         "InfraSizeMap": {
             "InstanceTypes": {
-                "SASGridMetaInstanceType": "r4.2xlarge",
-                "SASGridMidTierInstanceType": "r4.2xlarge",
+                "SASGridMetaInstanceType": "r5.2xlarge",
+                "SASGridMidTierInstanceType": "r5.2xlarge",
                 "NoOfSASGridMetadataInstances": "1",
                 "NoOfSASGridMidtierInstances": "1"
             }

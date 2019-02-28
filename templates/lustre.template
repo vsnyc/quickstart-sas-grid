@@ -105,7 +105,7 @@
             "Description": "EBS volume size (in GiB) for Lustre OSS nodes. You can specify 100-9900 GiB.?Provide size (in GiB) for Lustre OSS Data Volume in multiples of 100. Volume size for each OSS node will be assigned based on the input provided here",
             "Type": "String",
             "MinLength": "3",
-            "MaxLength": "4",
+            "MaxLength": "5",
             "Default": "100"
         },
         "VPCID": {
@@ -204,9 +204,9 @@
         },
         "InfraSizeMap": {
             "LustreInstances": {
-                "LustreOSSInstanceType": "c4.8xlarge",
-                "LustreMGTInstanceType": "c4.xlarge",
-                "LustreMDTInstanceType": "c4.4xlarge",
+                "LustreOSSInstanceType": "r4.8xlarge",
+                "LustreMGTInstanceType": "r4.xlarge",
+                "LustreMDTInstanceType": "r4.4xlarge",
                 "NoOfLustreMGTInstances": "1",
                 "NoOfLustreMDTInstances": "1"
             }
